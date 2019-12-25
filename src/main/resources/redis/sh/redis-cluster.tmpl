@@ -1,0 +1,20 @@
+protected-mode no 
+##设置外部网络连接redis服务，默认是yes，即开启。开启protected-mode保护模式，需配置bind ip或者设置访问密码，关闭protected-mode模式，此时外部网络可以直接访问
+port ${PORT} 
+##节点端口
+daemonize no 
+##指定redis是否要用守护线程的方式启动，默认no
+appendonly yes 
+##持久化模式
+cluster-enabled yes 
+##cluster集群模式
+cluster-config-file nodes.conf 
+##集群配置名
+cluster-node-timeout 15000 
+##超时时间
+cluster-announce-ip ${TEMP}
+##实际为各节点网卡分配ip
+cluster-announce-port ${PORT}  
+##节点映射端口
+cluster-announce-bus-port 1${PORT}  
+##节点总线端
