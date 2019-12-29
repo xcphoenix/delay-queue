@@ -87,7 +87,7 @@ public class SnowFlakeIDUtil {
      * @return 根据执行时间以及分配的Redis机器Id生成唯一的任务Id
      */
     public static long newId(Timestamp time) {
-        int machineId = RedisClusterUtil.availableMachineId();
+        int machineId = RedisClusterUtil.redirectedMachineId();
         return nextId(machineId);
     }
 
