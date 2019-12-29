@@ -1,12 +1,10 @@
 #!/bin/bash
 source ./constant.sh
 
-for port in `seq 7001 7006`; do
+for port in `seq ${PORT_START} ${PORT_END}`; do
   base=6999;
   hostIp=$[port-base];
-  echo ${hostIp};
   ip=${REDIS_NETWORK_IP%.0}.${hostIp};
-  echo ${ip};
 
   docker run \
   -p ${port}:${port} \
@@ -16,6 +14,7 @@ for port in `seq 7001 7006`; do
   --net ${REDIS_NETWORK} \
   --ip ${ip} \
   -d \
-  ${DOCKER_REDIS_IMAGE};
+  ${DOCKER_REDIS_IMAGE} \
+  redis-server /usr/local/etc/redis/redis.conf;
 
 done
