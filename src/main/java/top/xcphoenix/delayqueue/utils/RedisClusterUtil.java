@@ -12,7 +12,7 @@ public class RedisClusterUtil {
      *
      * @return Redis机器Id
      */
-    public static int redirectedMachineId() {
+    public static int getMachineId() {
         return 0;
     }
 
