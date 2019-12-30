@@ -1,5 +1,5 @@
 #!/bin/bash
-source ./constant.sh
+source ./constant.deployShell
 
 for port in `seq ${PORT_START} ${PORT_END}`; do \
   base=6999 \

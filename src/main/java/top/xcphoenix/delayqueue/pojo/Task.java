@@ -1,7 +1,8 @@
 package top.xcphoenix.delayqueue.pojo;
 
 import lombok.Getter;
-import top.xcphoenix.delayqueue.utils.SnowFlakeIDUtil;
+import top.xcphoenix.delayqueue.service.IdGeneratorService;
+import top.xcphoenix.delayqueue.service.impl.SnowFlakeIdGeneratorServiceImpl;
 
 import java.sql.Timestamp;
 import java.util.concurrent.Callable;
@@ -39,14 +40,29 @@ public class Task {
     @SuppressWarnings("rawtypes")
     private Class<? extends Callable> callBack;
 
+    private IdGeneratorService idGenerator = new SnowFlakeIdGeneratorServiceImpl();
+
     private Task(String topic, Timestamp delayExecTime) {
         this.topic = topic;
         this.delayExecTime = delayExecTime;
-        this.id = SnowFlakeIDUtil.newId(delayExecTime);
+        idGenerator.setSeed(delayExecTime.getTime());
+        this.id = idGenerator.getId();
+    }
+
+    private Task(String topic, Timestamp delayExecTime, IdGeneratorService idGenerator) {
+        this.topic = topic;
+        this.delayExecTime = delayExecTime;
+        this.idGenerator = idGenerator;
+        idGenerator.setSeed(delayExecTime.getTime());
+        this.id = idGenerator.getId();
     }
 
     public Task newTask(String topic, Timestamp delayExecTime) {
         return new Task(topic, delayExecTime);
+    }
+
+    public Task newTask(String topic, Timestamp delayExecTime, IdGeneratorService idGenerator) {
+        return new Task(topic, delayExecTime, idGenerator);
     }
 
     public Task desc(String desc) {

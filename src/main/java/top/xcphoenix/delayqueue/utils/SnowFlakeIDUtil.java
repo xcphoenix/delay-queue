@@ -1,7 +1,5 @@
 package top.xcphoenix.delayqueue.utils;
 
-import java.sql.Timestamp;
-
 /**
  * @author      xuanc
  * @date        2019/12/24 下午2:50
@@ -78,17 +76,6 @@ public class SnowFlakeIDUtil {
 
     private static long getNewStamp() {
         return System.currentTimeMillis();
-    }
-
-    /**
-     * 生成 task 唯一Id
-     *
-     * @param time 执行时间
-     * @return 根据执行时间以及分配的Redis机器Id生成唯一的任务Id
-     */
-    public static long newId(Timestamp time) {
-        int machineId = RedisClusterUtil.redirectedMachineId();
-        return nextId(machineId);
     }
 
 }
