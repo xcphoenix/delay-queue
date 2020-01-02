@@ -12,6 +12,13 @@ import java.util.List;
 public interface DelayQueueService {
 
     /**
+     * 初始化
+     *
+     * @throws Exception 异常
+     */
+    void init() throws Exception;
+
+    /**
      * 添加任务
      */
     void addTask();
