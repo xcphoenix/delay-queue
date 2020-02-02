@@ -15,10 +15,11 @@
 - web
   监控页面
 - pojo
-  bean
+  涉及对象
 - service
   提供相应的服务
 - utils
   工具类
 
 ```
+
