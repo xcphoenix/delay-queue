@@ -1,4 +1,4 @@
-package top.xcphoenix.delayqueue.service;
+package top.xcphoenix.delayqueue.manager;
 
 /**
  * ID 生成器
@@ -7,14 +7,14 @@ package top.xcphoenix.delayqueue.service;
  * @date        2019/12/29 下午6:42
  * @version     1.0
  */ 
-public interface IdGeneratorService {
+public interface IdGenerator {
 
     /**
      * 设置产生 id 的种子
      *
      * @param seed 种子
      */
-    void setSeed(long seed);
+    void setSeed(String seed);
 
     /**
      * 生成 id

@@ -25,12 +25,25 @@ import java.util.*;
 @Service
 public class RedisDelayQueueServiceImpl implements DelayQueueService {
 
+    /**
+     * 键前缀
+     */
     private static final String KEY_PREFIX = ProjectConst.projectName + ":";
+    /**
+     * lua 脚本资源位置
+     */
     private static final String LUA_SCRIPT_RES = "redis/lua/";
+    /**
+     * 要加载的 lua 脚本
+     */
     private static final List<String> LUA_FILE_LIST = Arrays.asList(
-            "addTask.lua"
+            "addTask.lua",
+            "pushTask.lua"
     );
-    private static final Map<String, String> LUA_SHA1 = new HashMap<>();
+    /**
+     * lua 脚本及其对应的 sha1 值
+     */
+    private static Map<String, String> LUA_SHA1 = new HashMap<>();
 
     private StringRedisTemplate redisTemplate;
 
@@ -55,7 +68,7 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
 
     @Override
     public void init() throws IOException {
-        log.info("loading lua script");
+        log.info("Loading lua script");
 
         URL url = getClass().getClassLoader().getResource(LUA_SCRIPT_RES);
         File directory = new File(
@@ -69,23 +82,25 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
             loadLuaScript(directory, file);
         }
 
-        log.info("load lua scripts success");
+        log.info("Load lua scripts success");
     }
 
+    /**
+     * 加载 Lua 脚本
+     */
     private void loadLuaScript(File directory, String luaFileName) throws IOException {
         File luaFile = new File(directory, luaFileName);
         String addTaskScriptContent = StreamUtils.copyToString(
                 new FileInputStream(luaFile), StandardCharsets.UTF_8
         );
-        log.debug("File: " + luaFile.getAbsolutePath() + ", content: " + addTaskScriptContent);
+        log.debug(" - Script: " + luaFile.getAbsolutePath());
 
         String luaSha1 = Objects.requireNonNull(redisTemplate.getConnectionFactory())
                 .getClusterConnection()
                 .scriptLoad(addTaskScriptContent.getBytes());
         LUA_SHA1.put(luaFileName, luaSha1);
 
-        log.info("load script: " + luaFileName + " success");
-        log.debug("script sha1: " + luaSha1);
+        log.debug("Load script success, SHA1: " + luaSha1);
     }
 
 }

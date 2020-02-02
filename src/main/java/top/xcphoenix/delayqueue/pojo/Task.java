@@ -1,8 +1,9 @@
 package top.xcphoenix.delayqueue.pojo;
 
 import lombok.Getter;
-import top.xcphoenix.delayqueue.service.IdGeneratorService;
-import top.xcphoenix.delayqueue.service.impl.SnowFlakeIdGeneratorServiceImpl;
+import top.xcphoenix.delayqueue.constant.ProjectConst;
+import top.xcphoenix.delayqueue.manager.IdGenerator;
+import top.xcphoenix.delayqueue.manager.impl.SnowFlakeIdGenerator;
 
 import java.sql.Timestamp;
 import java.util.concurrent.Callable;
@@ -15,6 +16,15 @@ import java.util.concurrent.Callable;
 @Getter
 public class Task {
 
+    private static final String DEFAULT_GROUP = ProjectConst.projectName;
+
+    /**
+     * 任务所在组
+     */
+    private String group;
+    /**
+     * 任务主题
+     */
     private String topic;
     /**
      * 使用雪花算法根据执行时间生成id
@@ -40,32 +50,48 @@ public class Task {
     @SuppressWarnings("rawtypes")
     private Class<? extends Callable> callBack;
 
-    private IdGeneratorService idGenerator = new SnowFlakeIdGeneratorServiceImpl();
+    private IdGenerator idGenerator = new SnowFlakeIdGenerator();
 
-    private Task(String topic, Timestamp delayExecTime) {
+    private Task(String topic, String group, Timestamp delayExecTime) {
         this.topic = topic;
+        this.group = group;
         this.delayExecTime = delayExecTime;
-        idGenerator.setSeed(delayExecTime.getTime());
+        idGenerator.setSeed(group);
         this.id = idGenerator.getId();
     }
 
-    private Task(String topic, Timestamp delayExecTime, IdGeneratorService idGenerator) {
+    private Task(String topic, String group, Timestamp delayExecTime, IdGenerator idGenerator) {
         this.topic = topic;
+        this.group = group;
         this.delayExecTime = delayExecTime;
         this.idGenerator = idGenerator;
-        idGenerator.setSeed(delayExecTime.getTime());
+        idGenerator.setSeed(group);
         this.id = idGenerator.getId();
     }
 
-    public Task newTask(String topic, Timestamp delayExecTime) {
-        return new Task(topic, delayExecTime);
+    public static Task newTask(String topic, String group, Timestamp delayExecTime, IdGenerator idGenerator) {
+        return new Task(topic, group, delayExecTime, idGenerator);
     }
 
-    public Task newTask(String topic, Timestamp delayExecTime, IdGeneratorService idGenerator) {
-        return new Task(topic, delayExecTime, idGenerator);
+    public static Task newTask(String topic, String group, Timestamp delayExecTime) {
+        return new Task(topic, group, delayExecTime);
     }
 
-    public Task desc(String desc) {
+    public static Task newTask(String topic, Timestamp delayExecTime, IdGenerator idGenerator) {
+        return new Task(topic, DEFAULT_GROUP, delayExecTime, idGenerator);
+    }
+
+    public static Task newTask(String topic, Timestamp delayExecTime) {
+        return new Task(topic, DEFAULT_GROUP, delayExecTime);
+    }
+
+    public Task setIdGenerator(IdGenerator idGenerator) {
+        idGenerator.setSeed(this.group);
+        this.id = idGenerator.getId();
+        return this;
+    }
+
+    public Task setDesc(String desc) {
         this.desc = desc;
         return this;
     }
