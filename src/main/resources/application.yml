@@ -11,3 +11,5 @@ spring:
         - 169.69.2.6:7005
         - 169.69.2.7:7006
       max-redirects: 3
+
+debug: true

@@ -1,5 +1,6 @@
 package top.xcphoenix.delayqueue.service;
 
+import top.xcphoenix.delayqueue.pojo.AbstractTask;
 import top.xcphoenix.delayqueue.pojo.Task;
 
 import java.util.List;
@@ -12,23 +13,22 @@ import java.util.List;
 public interface DelayQueueService {
 
     /**
-     * 初始化
-     *
-     * @throws Exception 异常
-     */
-    void init() throws Exception;
-
-    /**
      * 添加任务
+     *
+     * @param task 要添加的任务
      */
-    void addTask();
+    void addTask(Task task);
 
     /**
      * 移除任务
      *
+     * @param task 要删除的任务
+     *             必须具备以下字段：
+     *             - id
+     *             - group
      * @return 移除任务的信息
      */
-    Task removeTask();
+    Task removeTask(AbstractTask task);
 
     /**
      * 获取指定 topic 的任务信息

@@ -1,6 +1,8 @@
 package top.xcphoenix.delayqueue.pojo;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
+import lombok.Setter;
 import top.xcphoenix.delayqueue.constant.ProjectConst;
 import top.xcphoenix.delayqueue.manager.IdGenerator;
 import top.xcphoenix.delayqueue.manager.impl.SnowFlakeIdGenerator;
@@ -13,8 +15,9 @@ import java.util.concurrent.Callable;
  * @date        2019/12/22 下午4:20
  * @version     1.0
  */
+@Setter
 @Getter
-public class Task {
+public class Task extends AbstractTask {
 
     private static final String DEFAULT_GROUP = ProjectConst.projectName;
 
@@ -50,6 +53,7 @@ public class Task {
     @SuppressWarnings("rawtypes")
     private Class<? extends Callable> callBack;
 
+    @JSONField(deserialize = false, serialize = false)
     private IdGenerator idGenerator = new SnowFlakeIdGenerator();
 
     private Task(String topic, String group, Timestamp delayExecTime) {

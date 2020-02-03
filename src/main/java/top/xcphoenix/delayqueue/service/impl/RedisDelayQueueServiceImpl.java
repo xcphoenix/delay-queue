@@ -1,20 +1,23 @@
 package top.xcphoenix.delayqueue.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
-import top.xcphoenix.delayqueue.constant.ProjectConst;
+import top.xcphoenix.delayqueue.constant.LuaEnum;
+import top.xcphoenix.delayqueue.constant.RedisDataStruct;
+import top.xcphoenix.delayqueue.pojo.AbstractTask;
 import top.xcphoenix.delayqueue.pojo.Task;
 import top.xcphoenix.delayqueue.service.DelayQueueService;
 
-import java.io.File;
-import java.io.FileInputStream;
+import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author xuanc
@@ -26,24 +29,9 @@ import java.util.*;
 public class RedisDelayQueueServiceImpl implements DelayQueueService {
 
     /**
-     * 键前缀
-     */
-    private static final String KEY_PREFIX = ProjectConst.projectName + ":";
-    /**
-     * lua 脚本资源位置
-     */
-    private static final String LUA_SCRIPT_RES = "redis/lua/";
-    /**
-     * 要加载的 lua 脚本
-     */
-    private static final List<String> LUA_FILE_LIST = Arrays.asList(
-            "addTask.lua",
-            "pushTask.lua"
-    );
-    /**
      * lua 脚本及其对应的 sha1 值
      */
-    private static Map<String, String> LUA_SHA1 = new HashMap<>();
+    private static ConcurrentMap<String, RedisScript<String>> REDIS_SCRIPT = new ConcurrentHashMap<>();
 
     private StringRedisTemplate redisTemplate;
 
@@ -52,13 +40,53 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
     }
 
     @Override
-    public void addTask() {
+    @SuppressWarnings({"unchecked"})
+    public void addTask(Task task) {
+        List<String> keys = new ArrayList<>();
+        String taskKey = RedisDataStruct.taskKey(task);
+        String waitingKey = RedisDataStruct.waitingKey(task);
+        keys.add(taskKey);
+        keys.add(waitingKey);
 
+        String taskField = RedisDataStruct.taskField(task);
+        String taskSerializer = JSON.toJSONString(task);
+        String waitingValue = RedisDataStruct.waitingValue(task);
+        long execTime = task.getDelayExecTime().getTime();
+
+        String[] args = new String[] {
+                taskField,
+                taskSerializer,
+                waitingValue,
+                String.valueOf(execTime)
+        };
+
+        log.info("Add Task:: task => " + taskSerializer);
+
+        redisTemplate.execute(getRedisScript(LuaEnum.ADD_TASK), keys, (String[]) args);
     }
 
     @Override
-    public Task removeTask() {
-        return null;
+    @SuppressWarnings({"unchecked"})
+    public Task removeTask(AbstractTask task) {
+        List<String> keys = new ArrayList<>();
+        String taskKey = RedisDataStruct.taskKey(task);
+        String waitingKey = RedisDataStruct.waitingKey(task);
+        keys.add(taskKey);
+        keys.add(waitingKey);
+
+        String taskField = RedisDataStruct.taskField(task);
+        String waitingValue = RedisDataStruct.waitingValue(task);
+        String[] args = new String[] {
+                taskField, waitingValue
+        };
+
+        Object serializer = redisTemplate.execute(
+                getRedisScript(LuaEnum.REMOVE_TASK),
+                keys,
+                (String[]) args);
+
+        assert serializer != null;
+        return JSONObject.parseObject(serializer.toString(), Task.class);
     }
 
     @Override
@@ -66,41 +94,22 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
         return null;
     }
 
-    @Override
+    @PostConstruct
     public void init() throws IOException {
-        log.info("Loading lua script");
+        log.info("Init:: loading lua script");
 
-        URL url = getClass().getClassLoader().getResource(LUA_SCRIPT_RES);
-        File directory = new File(
-                URLDecoder.decode(
-                        Objects.requireNonNull(url).getFile(),
-                        StandardCharsets.UTF_8
-                )
-        );
+        for (LuaEnum luaEnum : LuaEnum.values()) {
+            log.debug("- load script: " + luaEnum.getFileName());
 
-        for (String file : LUA_FILE_LIST) {
-            loadLuaScript(directory, file);
+            REDIS_SCRIPT.put(luaEnum.toString(), RedisScript.of(luaEnum.getContent(), String.class));
         }
 
-        log.info("Load lua scripts success");
+        log.info("Init:: load lua scripts success");
     }
 
-    /**
-     * 加载 Lua 脚本
-     */
-    private void loadLuaScript(File directory, String luaFileName) throws IOException {
-        File luaFile = new File(directory, luaFileName);
-        String addTaskScriptContent = StreamUtils.copyToString(
-                new FileInputStream(luaFile), StandardCharsets.UTF_8
-        );
-        log.debug(" - Script: " + luaFile.getAbsolutePath());
-
-        String luaSha1 = Objects.requireNonNull(redisTemplate.getConnectionFactory())
-                .getClusterConnection()
-                .scriptLoad(addTaskScriptContent.getBytes());
-        LUA_SHA1.put(luaFileName, luaSha1);
-
-        log.debug("Load script success, SHA1: " + luaSha1);
+    @SuppressWarnings({"rawtypes"})
+    private RedisScript getRedisScript(LuaEnum luaEnum) {
+        return REDIS_SCRIPT.get(luaEnum.toString());
     }
 
 }
