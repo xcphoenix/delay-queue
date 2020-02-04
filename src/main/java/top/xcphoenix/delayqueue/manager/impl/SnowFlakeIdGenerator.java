@@ -12,22 +12,29 @@ import top.xcphoenix.delayqueue.utils.SnowFlakeIDUtil;
 public class SnowFlakeIdGenerator implements IdGenerator {
 
     /**
-     * 雪花算法-机器id
+     * 机器id
      */
-    private long machineId;
-
+    private long defaultMachineId = 0L;
     /**
-     * 使用 CRC16 设置 machineId
-     * @param seed 种子
+     * 数据中心id
      */
-    @Override
-    public void setSeed(String seed) {
-        this.machineId = JedisClusterCRC16.getSlot(seed);
-    }
+    private long defaultDataCenterId = 0L;
 
     @Override
     public long getId() {
-        return SnowFlakeIDUtil.nextId(this.machineId);
+        long machineId = getProcessId() % SnowFlakeIDUtil.MAX_MACHINE_NUM;
+        return SnowFlakeIDUtil.nextId(this.defaultDataCenterId, machineId);
+    }
+
+    @Override
+    public long getId(String seed) {
+        long machineId = getProcessId() % SnowFlakeIDUtil.MAX_MACHINE_NUM;
+        long tmpDataCenterId = JedisClusterCRC16.getSlot(seed) % SnowFlakeIDUtil.MAX_DATA_CENTER_NUM;
+        return SnowFlakeIDUtil.nextId(tmpDataCenterId, machineId);
+    }
+
+    private long getProcessId() {
+        return Thread.currentThread().getId();
     }
 
 }

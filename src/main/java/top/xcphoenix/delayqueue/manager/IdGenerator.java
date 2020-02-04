@@ -10,17 +10,17 @@ package top.xcphoenix.delayqueue.manager;
 public interface IdGenerator {
 
     /**
-     * 设置产生 id 的种子
-     *
-     * @param seed 种子
-     */
-    void setSeed(String seed);
-
-    /**
      * 生成 id
      *
      * @return id
      */
     long getId();
 
+    /**
+     * 生成 id
+     *
+     * @param seed 数据中心种子
+     * @return id
+     */
+    long getId(String seed);
 }
