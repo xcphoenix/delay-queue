@@ -34,7 +34,7 @@
 
    **类型**： `LIST`
 
-   **名字**： `{GROUP}:CONSUMING:{TOPIC}`
+   **名字**： `{GROUP}:CONSUMING:TOPIC`
 
    **值**：     `{id 任务id}`
    

@@ -40,20 +40,15 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
     }
 
     @Override
-    @SuppressWarnings({"unchecked"})
     public void addTask(Task task) {
-        List<String> keys = new ArrayList<>();
-        String taskKey = RedisDataStruct.taskKey(task);
-        String waitingKey = RedisDataStruct.waitingKey(task);
-        keys.add(taskKey);
-        keys.add(waitingKey);
+        List<String> keys = getRedisKeys(task, true, true);
 
         String taskField = RedisDataStruct.taskField(task);
         String taskSerializer = JSON.toJSONString(task);
         String waitingValue = RedisDataStruct.waitingValue(task);
         long execTime = task.getDelayExecTime().getTime();
 
-        String[] args = new String[] {
+        Object[] args = new String[]{
                 taskField,
                 taskSerializer,
                 waitingValue,
@@ -62,31 +57,22 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
 
         log.info("Add Task:: task => " + taskSerializer);
 
-        redisTemplate.execute(getRedisScript(LuaEnum.ADD_TASK), keys, (String[]) args);
+        redisTemplate.execute(getRedisScript(LuaEnum.ADD_TASK), keys, args);
     }
 
     @Override
-    @SuppressWarnings({"unchecked"})
     public Task removeTask(AbstractTask task) {
-        List<String> keys = new ArrayList<>();
-        String taskKey = RedisDataStruct.taskKey(task);
-        String waitingKey = RedisDataStruct.waitingKey(task);
-        keys.add(taskKey);
-        keys.add(waitingKey);
+        List<String> keys = getRedisKeys(task, true, true);
 
         String taskField = RedisDataStruct.taskField(task);
         String waitingValue = RedisDataStruct.waitingValue(task);
-        String[] args = new String[] {
+        Object[] args = new String[]{
                 taskField, waitingValue
         };
 
-        Object serializer = redisTemplate.execute(
-                getRedisScript(LuaEnum.REMOVE_TASK),
-                keys,
-                (String[]) args);
+        String serializer = redisTemplate.execute(getRedisScript(LuaEnum.REMOVE_TASK), keys, args);
 
-        assert serializer != null;
-        return JSONObject.parseObject(serializer.toString(), Task.class);
+        return JSONObject.parseObject(serializer, Task.class);
     }
 
     @Override
@@ -95,6 +81,7 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
     }
 
     @PostConstruct
+    @SuppressWarnings({"unchecked"})
     public void init() throws IOException {
         log.info("Init:: loading lua script");
 
@@ -107,9 +94,19 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
         log.info("Init:: load lua scripts success");
     }
 
-    @SuppressWarnings({"rawtypes"})
-    private RedisScript getRedisScript(LuaEnum luaEnum) {
+    private RedisScript<String> getRedisScript(LuaEnum luaEnum) {
         return REDIS_SCRIPT.get(luaEnum.toString());
+    }
+
+    private List<String> getRedisKeys(AbstractTask task, boolean... bool) {
+        List<String> keys = new ArrayList<>();
+        List<String> redisKeys = RedisDataStruct.getRedisKeys(task);
+        for (int i = 0; i < redisKeys.size() && i < bool.length; i++) {
+            if (bool[i]) {
+                keys.add(redisKeys.get(i));
+            }
+        }
+        return keys;
     }
 
 }

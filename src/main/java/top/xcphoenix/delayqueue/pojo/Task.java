@@ -11,6 +11,10 @@ import java.sql.Timestamp;
 import java.util.concurrent.Callable;
 
 /**
+ * TODO 自定义序列化
+ *   - 隐藏无参构造器
+ *   - 隐藏setter方法
+ *
  * @author      xuanc
  * @date        2019/12/22 下午4:20
  * @version     1.0
@@ -56,12 +60,13 @@ public class Task extends AbstractTask {
     @JSONField(deserialize = false, serialize = false)
     private IdGenerator idGenerator = new SnowFlakeIdGenerator();
 
+    public Task() {}
+
     private Task(String topic, String group, Timestamp delayExecTime) {
         this.topic = topic;
         this.group = group;
         this.delayExecTime = delayExecTime;
-        idGenerator.setSeed(group);
-        this.id = idGenerator.getId();
+        this.id = idGenerator.getId(group);
     }
 
     private Task(String topic, String group, Timestamp delayExecTime, IdGenerator idGenerator) {
@@ -69,8 +74,7 @@ public class Task extends AbstractTask {
         this.group = group;
         this.delayExecTime = delayExecTime;
         this.idGenerator = idGenerator;
-        idGenerator.setSeed(group);
-        this.id = idGenerator.getId();
+        this.id = idGenerator.getId(group);
     }
 
     public static Task newTask(String topic, String group, Timestamp delayExecTime, IdGenerator idGenerator) {
@@ -90,8 +94,7 @@ public class Task extends AbstractTask {
     }
 
     public Task setIdGenerator(IdGenerator idGenerator) {
-        idGenerator.setSeed(this.group);
-        this.id = idGenerator.getId();
+        this.id = idGenerator.getId(this.group);
         return this;
     }
 

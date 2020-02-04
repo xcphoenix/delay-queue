@@ -27,16 +27,16 @@ public class DelayQueueTest {
 
     @Test
     void testAddTask() {
-        for (int i = 0; i < 10; i++) {
-            Task task = Task.newTask("test",
-                    new Timestamp(System.currentTimeMillis() + new Random().nextLong()));
+        for (int i = 0; i < 100; i++) {
+            Task task = Task.newTask("test", new Timestamp(System.currentTimeMillis()
+                    + Math.abs(new Random().nextLong())));
             delayQueueService.addTask(task);
         }
     }
 
     @Test
     void testRemoveTask() {
-        AbstractTask abstractTask = AbstractTask.of(360595456L, "test");
+        AbstractTask abstractTask = AbstractTask.of(293486592L, "test");
         Task task = delayQueueService.removeTask(abstractTask);
         log.info(JSON.toJSONString(task, SerializerFeature.PrettyFormat));
     }
