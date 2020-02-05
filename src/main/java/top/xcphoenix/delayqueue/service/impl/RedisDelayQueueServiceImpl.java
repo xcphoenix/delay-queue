@@ -15,6 +15,7 @@ import top.xcphoenix.delayqueue.service.DelayQueueService;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -70,9 +71,24 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
                 taskField, waitingValue
         };
 
+        log.info("Remove task:: task => " + JSON.toJSONString(task));
+
         String serializer = redisTemplate.execute(getRedisScript(LuaEnum.REMOVE_TASK), keys, args);
 
         return JSONObject.parseObject(serializer, Task.class);
+    }
+
+    @Override
+    public void pushTask(String group, long maxScore, long minScore) {
+        AbstractTask abstractTask = AbstractTask.of(group);
+        List<String> keys = getRedisKeys(abstractTask, false, true, true);
+        Object[] args = new Object[] {
+                String.valueOf(maxScore), String.valueOf(minScore)
+        };
+
+        log.info("Push Task:: group => " + group + ", keys => " + keys.toString() + ", args => " + Arrays.toString(args));
+
+        redisTemplate.execute(getRedisScript(LuaEnum.PUSH_TASK), keys, args);
     }
 
     @Override

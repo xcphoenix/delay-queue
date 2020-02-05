@@ -12,6 +12,9 @@ import top.xcphoenix.delayqueue.constant.ProjectConst;
 public abstract class AbstractTask {
 
     protected AbstractTask() {}
+    protected AbstractTask(String group) {
+        this.group = group;
+    }
     protected AbstractTask(long id, String topic, String group) {
         this.id = id;
         this.topic = topic;
@@ -30,6 +33,11 @@ public abstract class AbstractTask {
      * 任务id
      */
     private long id;
+
+    public static AbstractTask of(String group) {
+        return new AbstractTask(group) {
+        };
+    }
 
     public static AbstractTask of(long id, String topic) {
         String group = ProjectConst.projectName;

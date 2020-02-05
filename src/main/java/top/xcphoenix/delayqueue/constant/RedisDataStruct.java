@@ -31,12 +31,26 @@ public class RedisDataStruct {
         return join(wrap(task.getGroup()), WAITING);
     }
 
+    /**
+     * 获取任务所对应的消费队列key
+     *
+     * @param task 任务信息
+     * @throws IllegalArgumentException topic is null
+     * @return 消费队列 key
+     */
     public static String consumingKey(AbstractTask task) {
-        return join(wrap(task.getGroup()), CONSUMING, wrap(task.getTopic()));
+        if (task.getTopic() == null) {
+            throw new IllegalArgumentException("topic can't be null");
+        }
+        return join(wrap(task.getGroup()), CONSUMING, task.getTopic());
+    }
+
+    public static String consumingKeyPrefix(AbstractTask task) {
+        return join(wrap(task.getGroup()), CONSUMING);
     }
 
     public static List<String> getRedisKeys(AbstractTask task) {
-        return Arrays.asList(taskKey(task), waitingKey(task), consumingKey(task));
+        return Arrays.asList(taskKey(task), waitingKey(task), consumingKeyPrefix(task));
     }
 
     /**
