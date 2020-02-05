@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import top.xcphoenix.delayqueue.constant.ProjectConst;
 import top.xcphoenix.delayqueue.pojo.AbstractTask;
 import top.xcphoenix.delayqueue.pojo.Task;
 import top.xcphoenix.delayqueue.service.DelayQueueService;
@@ -27,9 +28,16 @@ public class DelayQueueTest {
 
     @Test
     void testAddTask() {
+        String[] topics = new String[] {
+                "testA",
+                "testB",
+                "testC",
+                "testD"
+        };
         for (int i = 0; i < 100; i++) {
-            Task task = Task.newTask("test", new Timestamp(System.currentTimeMillis()
-                    + Math.abs(new Random().nextLong())));
+            Task task = Task.newTask(
+                    topics[Math.abs(new Random().nextInt()) % 4],
+                    new Timestamp(System.currentTimeMillis() + Math.abs(new Random().nextLong())));
             delayQueueService.addTask(task);
         }
     }
@@ -39,6 +47,12 @@ public class DelayQueueTest {
         AbstractTask abstractTask = AbstractTask.of(293486592L, "test");
         Task task = delayQueueService.removeTask(abstractTask);
         log.info(JSON.toJSONString(task, SerializerFeature.PrettyFormat));
+    }
+
+    @Test
+    void testPushTask() {
+        String group = ProjectConst.projectName;
+        delayQueueService.pushTask(group, 9029740217268089000L, 0L);
     }
 
 }
