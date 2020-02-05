@@ -1,5 +1,5 @@
 #!/bin/bash
-source ./constant.deployShell
+source ./constant.sh
 
 # create network
 docker network create --subnet=${REDIS_NETWORK_IP}/24 ${REDIS_NETWORK}
