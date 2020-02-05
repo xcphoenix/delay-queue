@@ -5,26 +5,58 @@
 --- Description: 推送任务
 ---
 
-local waitingKey = KEYS[1]
-local detailKey = KEYS[2]
+-- function: log
+local function log(str)
+    redis.log(redis.LOG_VERBOSE, '[LUA] ' .. str);
+end
 
-local minScore = ARGV[1]
-local maxScore = ARGV[2]
-local offset = ARGV[3]
-local limit = ARGV[4]
+-- function: string split
+local function split(str, reps)
+    local resultStrList = {}
+    string.gsub(str, '[^' .. reps .. ']+',
+            function(w)
+                table.insert(resultStrList, w);
+            end
+    )
+    return resultStrList;
+end
+
+-- define
+local waitingKey = KEYS[1]
+local consumingKeyPrefix = KEYS[2]
+
+local maxScore = ARGV[1]
+local minScore = ARGV[2]
+
+log("EVAL lua [pushTask]..")
+log("keys: " .. waitingKey .. ", " .. consumingKeyPrefix);
+log(string.format("minScore: %s, maxScore: %s", minScore, maxScore));
 
 local status, type = next(redis.call('TYPE', waitingKey))
+log("status: " .. status .. ", type: " .. type);
+
 if status ~= nil and status == 'ok' then
     if type == 'zset' then
-        local list = redis.call('ZREVRANGEBYSCORE', waitingKey, maxScore, minScore, 'LIMIT', offset, limit)
+        -- get values
+        local list = redis.call('ZREVRANGEBYSCORE', waitingKey, maxScore, minScore)
+
         if list ~= nil and #list > 0 then
+            log("list length: " .. #list);
+
+            for k, v in ipairs(list) do
+                log("  - value: " .. v);
+                local item = split(v, ':');
+                local topic = item[1];
+                local taskId = item[2];
+                local consumingKey = consumingKeyPrefix .. ':' .. topic;
+
+                redis.call('RPUSH', consumingKey, taskId);
+                log('- add value ' .. taskId .. ' in key ' .. consumingKey);
+            end
+
             -- 从等待队列中删除
             redis.call('ZREM', waitingKey, unpack(list))
-            -- 获取任务信息
-            local result = redis.call('HMGET', detailKey, unpack(list))
-            -- 移除任务
-            redis.call('HDEL', detailKey, unpack(list))
-            return result
+            log('delete list on waiting key');
         end
     end
 end

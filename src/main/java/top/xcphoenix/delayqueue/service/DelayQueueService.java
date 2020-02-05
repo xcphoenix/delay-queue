@@ -31,6 +31,15 @@ public interface DelayQueueService {
     Task removeTask(AbstractTask task);
 
     /**
+     * 推送任务至待消费队列
+     *
+     * @param group 推送操作的组
+     * @param maxScore 最大分数
+     * @param minScore 最小分数
+     */
+    void pushTask(String group, long maxScore, long minScore);
+
+    /**
      * 获取指定 topic 的任务信息
      *
      * @param topic 主题
