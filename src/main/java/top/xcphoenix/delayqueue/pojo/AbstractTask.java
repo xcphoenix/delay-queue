@@ -4,6 +4,9 @@ import lombok.Getter;
 import top.xcphoenix.delayqueue.constant.ProjectConst;
 
 /**
+ * TODO
+ *   - topic、group名不能包含特殊字符（限制为数字+英文字母）
+ *
  * @author      xuanc
  * @date        2020/2/3 下午5:21
  * @version     1.0

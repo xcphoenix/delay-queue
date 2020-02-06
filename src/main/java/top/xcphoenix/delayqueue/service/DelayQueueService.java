@@ -36,8 +36,9 @@ public interface DelayQueueService {
      * @param group 推送操作的组
      * @param maxScore 最大分数
      * @param minScore 最小分数
+     * @return 等待队列中最高分数
      */
-    void pushTask(String group, long maxScore, long minScore);
+    Long pushTask(String group, long maxScore, long minScore);
 
     /**
      * 获取指定 topic 的任务信息

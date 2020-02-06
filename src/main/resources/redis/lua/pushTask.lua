@@ -38,7 +38,7 @@ log("status: " .. status .. ", type: " .. type);
 if status ~= nil and status == 'ok' then
     if type == 'zset' then
         -- get values
-        local list = redis.call('ZREVRANGEBYSCORE', waitingKey, maxScore, minScore)
+        local list = redis.call('ZRANGEBYSCORE', waitingKey, minScore, maxScore)
 
         if list ~= nil and #list > 0 then
             log("list length: " .. #list);
@@ -60,4 +60,11 @@ if status ~= nil and status == 'ok' then
         end
     end
 end
-return nil
+
+local max = redis.call('ZRANGE', waitingKey, 0, 0, 'WITHSCORES');
+
+if max ~= nil then
+    return max[2];
+end
+
+return nil;

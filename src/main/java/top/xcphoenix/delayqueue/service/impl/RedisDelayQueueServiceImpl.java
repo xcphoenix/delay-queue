@@ -14,6 +14,7 @@ import top.xcphoenix.delayqueue.service.DelayQueueService;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -79,7 +80,7 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
     }
 
     @Override
-    public void pushTask(String group, long maxScore, long minScore) {
+    public Long pushTask(String group, long maxScore, long minScore) {
         AbstractTask abstractTask = AbstractTask.of(group);
         List<String> keys = getRedisKeys(abstractTask, false, true, true);
         Object[] args = new Object[] {
@@ -88,7 +89,12 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
 
         log.info("Push Task:: group => " + group + ", keys => " + keys.toString() + ", args => " + Arrays.toString(args));
 
-        redisTemplate.execute(getRedisScript(LuaEnum.PUSH_TASK), keys, args);
+        String strScore = redisTemplate.execute(getRedisScript(LuaEnum.PUSH_TASK), keys, args);
+        if (strScore == null) {
+            return null;
+        }
+        // 处理 lua 返回科学计数法
+        return new BigDecimal(strScore).longValue();
     }
 
     @Override

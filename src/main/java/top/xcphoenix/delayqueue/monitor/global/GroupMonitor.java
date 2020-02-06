@@ -1,27 +1,54 @@
 package top.xcphoenix.delayqueue.monitor.global;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import top.xcphoenix.delayqueue.threads.PushTaskThread;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author      xuanc
  * @date        2020/2/5 下午8:10
  * @version     1.0
  */
+@Slf4j
 @Component
-public class GroupMonitorVar {
+public class GroupMonitor {
+
+    private long stopTimeout = 50;
+
+    /**
+     * 线程池
+     */
+    private ThreadPoolExecutor pushExecutor;
 
     /**
      * 组与线程的映射
      *
      * thread safe
      */
-    private Map<String, Runnable> groupRunnable = new ConcurrentHashMap<>();
+    private Map<String, Future<Void>> groupRunnable = new ConcurrentHashMap<>();
+
+    public GroupMonitor(@Qualifier("pushThreadPool") ThreadPoolExecutor pushExecutor) {
+        this.pushExecutor = pushExecutor;
+    }
+
+    /**
+     * Group 是否存在
+     *
+     * @param group 要判断的组名
+     * @return 存在返回 true，否则返回 false
+     */
+    public boolean isExist(String group) {
+        return groupRunnable.containsKey(group);
+    }
 
     /**
      * 获取当前的群组列表
@@ -38,15 +65,18 @@ public class GroupMonitorVar {
      * @param group 新的组
      */
     public void pushNewGroup(String group) {
+        log.info("Monitor:: push new group => " + group);
+
         if (groupRunnable.containsKey(group)) {
             return;
         }
-        // TODO 新建线程，添加到 groupRunnable
-        groupRunnable.put(group, new Runnable() {
-            @Override
-            public void run() {
-            }
-        });
+
+        PushTaskThread thread = new PushTaskThread(group);
+        // 执行线程
+        Future<Void> future = pushExecutor.submit(thread, null);
+        groupRunnable.put(group, future);
+
+        log.info("Monitor:: create new thread listen group => " + group);
     }
 
     /**
@@ -55,11 +85,9 @@ public class GroupMonitorVar {
      * @param group 要移除的 group
      */
     public void remOldGroup(String group) {
-        Runnable runnable = groupRunnable.get(group);
+        Future<Void> future = groupRunnable.get(group);
         groupRunnable.remove(group);
-        // TODO
-        //   - 停止线程执行的任务
-        //   - 设置标识位为结束，若线程超时仍未结束，强行中断
+        future.cancel(true);
     }
 
     /**
