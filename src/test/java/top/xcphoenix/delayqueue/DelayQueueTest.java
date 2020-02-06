@@ -37,7 +37,7 @@ public class DelayQueueTest {
         for (int i = 0; i < 100; i++) {
             Task task = Task.newTask(
                     topics[Math.abs(new Random().nextInt()) % 4],
-                    new Timestamp(System.currentTimeMillis() + Math.abs(new Random().nextLong())));
+                    new Timestamp(System.currentTimeMillis() + Math.abs(new Random().nextLong()) % (100 * 1000)));
             delayQueueService.addTask(task);
         }
     }

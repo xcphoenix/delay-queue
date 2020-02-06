@@ -13,9 +13,17 @@ import java.util.List;
  */ 
 public class RedisDataStruct {
 
+    /**
+     * key prefix
+     */
     private static final String DETAIL = "DETAIL";
     private static final String WAITING = "WAITING";
     private static final String CONSUMING = "CONSUMING";
+
+    /**
+     * [Hash] 监视 group、topic 数据
+     */
+    public static final String PROJECT_MONITOR_KEY = "MONITOR:SUMMARY";
 
     private RedisDataStruct() {}
 

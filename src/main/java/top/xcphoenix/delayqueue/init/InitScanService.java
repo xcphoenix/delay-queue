@@ -1,4 +1,4 @@
-package top.xcphoenix.delayqueue.watch;
+package top.xcphoenix.delayqueue.init;
 
 import org.springframework.boot.CommandLineRunner;
 
@@ -7,6 +7,6 @@ import org.springframework.boot.CommandLineRunner;
  * @date        2020/2/5 下午4:06
  * @version     1.0
  */ 
-public interface WatchTimerService extends CommandLineRunner {
+public interface InitScanService extends CommandLineRunner {
 
 }
