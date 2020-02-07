@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version     1.0
  */
 @Slf4j
-public class PushTaskThread implements Runnable {
+public class WaitMonitorThread implements Runnable {
 
     /** 关注的 group    */
     private String attentionGroup;
@@ -23,13 +23,13 @@ public class PushTaskThread implements Runnable {
     /** get delayqueue for push */
     private DelayQueueService delayQueueService = BeanUtil.getBean(DelayQueueService.class);
 
-    public PushTaskThread(@NotNull String attentionGroup) {
+    public WaitMonitorThread(@NotNull String attentionGroup) {
         this.attentionGroup = attentionGroup;
     }
 
     @Override
     public synchronized void run() {
-        log.info("PushTask:: start monitor for push task, attend group => " + attentionGroup);
+        log.info("start monitor for waiting zset, attend group => " + attentionGroup);
 
         while (!Thread.currentThread().isInterrupted()) {
             long now = System.currentTimeMillis();

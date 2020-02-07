@@ -7,6 +7,6 @@ import org.springframework.boot.CommandLineRunner;
  * @date        2020/2/5 下午4:06
  * @version     1.0
  */ 
-public interface InitScanService extends CommandLineRunner {
+public interface InitScanInterface extends CommandLineRunner {
 
 }
