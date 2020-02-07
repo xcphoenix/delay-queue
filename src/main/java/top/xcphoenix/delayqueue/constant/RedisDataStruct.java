@@ -1,7 +1,7 @@
 package top.xcphoenix.delayqueue.constant;
 
 import org.apache.commons.lang3.StringUtils;
-import top.xcphoenix.delayqueue.pojo.AbstractTask;
+import top.xcphoenix.delayqueue.pojo.BaseTask;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +24,7 @@ public class RedisDataStruct {
      * [Hash] 监视 group、topic 数据
      */
     public static final String PROJECT_MONITOR_KEY = "MONITOR:SUMMARY";
+    public static final String MONITOR_TOPIC_DELIMITER = ",";
 
     private RedisDataStruct() {}
 
@@ -31,11 +32,11 @@ public class RedisDataStruct {
      * for key
      */
 
-    public static String taskKey(AbstractTask task) {
+    public static String taskKey(BaseTask task) {
         return join(wrap(task.getGroup()), DETAIL);
     }
 
-    public static String waitingKey(AbstractTask task) {
+    public static String waitingKey(BaseTask task) {
         return join(wrap(task.getGroup()), WAITING);
     }
 
@@ -46,18 +47,18 @@ public class RedisDataStruct {
      * @throws IllegalArgumentException topic is null
      * @return 消费队列 key
      */
-    public static String consumingKey(AbstractTask task) {
+    public static String consumingKey(BaseTask task) {
         if (task.getTopic() == null) {
             throw new IllegalArgumentException("topic can't be null");
         }
         return join(wrap(task.getGroup()), CONSUMING, task.getTopic());
     }
 
-    public static String consumingKeyPrefix(AbstractTask task) {
+    public static String consumingKeyPrefix(BaseTask task) {
         return join(wrap(task.getGroup()), CONSUMING);
     }
 
-    public static List<String> getRedisKeys(AbstractTask task) {
+    public static List<String> getRedisKeys(BaseTask task) {
         return Arrays.asList(taskKey(task), waitingKey(task), consumingKeyPrefix(task));
     }
 
@@ -65,15 +66,24 @@ public class RedisDataStruct {
      * for field or value
      */
 
-    public static String taskField(AbstractTask task) {
+    public static String taskField(BaseTask task) {
+        if (task.getId() == null) {
+            throw new IllegalArgumentException("id can't be null");
+        }
         return String.valueOf(task.getId());
     }
 
-    public static String waitingValue(AbstractTask task) {
+    public static String waitingValue(BaseTask task) {
+        if (task.getId() == null || task.getTopic() == null) {
+            throw new IllegalArgumentException("id or topic can't be null");
+        }
         return join(task.getTopic(), task.getId());
     }
 
-    public static String consumingValue(AbstractTask task) {
+    public static String consumingValue(BaseTask task) {
+        if (task.getId() == null) {
+            throw new IllegalArgumentException("id can't be null");
+        }
         return String.valueOf(task.getId());
     }
 

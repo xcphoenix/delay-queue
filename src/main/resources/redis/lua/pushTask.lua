@@ -28,7 +28,7 @@ local consumingKeyPrefix = KEYS[2]
 local maxScore = ARGV[1]
 local minScore = ARGV[2]
 
-log("EVAL lua [pushTask]..")
+log("EVAL lua [pushTask] ---------------------------------")
 log("keys: " .. waitingKey .. ", " .. consumingKeyPrefix);
 log(string.format("minScore: %s, maxScore: %s", minScore, maxScore));
 
@@ -43,15 +43,14 @@ if status ~= nil and status == 'ok' then
         if list ~= nil and #list > 0 then
             log("list length: " .. #list);
 
-            for k, v in ipairs(list) do
-                log("  - value: " .. v);
+            for _, v in ipairs(list) do
                 local item = split(v, ':');
                 local topic = item[1];
                 local taskId = item[2];
                 local consumingKey = consumingKeyPrefix .. ':' .. topic;
 
                 redis.call('RPUSH', consumingKey, taskId);
-                log('- add value ' .. taskId .. ' in key ' .. consumingKey);
+                log('~ add value ' .. taskId .. ' in key ' .. consumingKey);
             end
 
             -- 从等待队列中删除

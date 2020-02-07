@@ -1,6 +1,6 @@
 package top.xcphoenix.delayqueue.service;
 
-import top.xcphoenix.delayqueue.pojo.AbstractTask;
+import top.xcphoenix.delayqueue.pojo.BaseTask;
 import top.xcphoenix.delayqueue.pojo.Task;
 
 import java.util.List;
@@ -28,7 +28,7 @@ public interface DelayQueueService {
      *             - group
      * @return 移除任务的信息
      */
-    Task removeTask(AbstractTask task);
+    Task removeTask(BaseTask task);
 
     /**
      * 推送任务至待消费队列
@@ -43,13 +43,13 @@ public interface DelayQueueService {
     /**
      * 获取指定 topic 的任务信息
      *
-     * @param topic 主题
-     * @param offset 偏移量<br />
-     *               if <code>offset < 0</code> return all task
+     * @param group topic 所在的组
+     * @param topic topic
      * @param limit 条数
+     *              <code>if limit == 0</code> 获取所有数据
      * @return 任务信息
+     * @throws IllegalArgumentException limit < 0
      */
-    List<Task> getTaskByTopic(String topic, long offset, int limit);
-
+    List<Task> getTasksInList(String group, String topic, int limit) throws IllegalArgumentException;
 
 }

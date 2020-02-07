@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import top.xcphoenix.delayqueue.threads.PushTaskThread;
+import top.xcphoenix.delayqueue.threads.WaitMonitorThread;
 
 import java.util.Collection;
 import java.util.Map;
@@ -20,9 +20,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 @Slf4j
 @Component
-public class GroupMonitor {
-
-    private long stopTimeout = 50;
+public class GroupTopicMonitor {
 
     /**
      * 线程池
@@ -31,14 +29,23 @@ public class GroupMonitor {
 
     /**
      * 组与线程的映射
-     *
      * thread safe
      */
     private Map<String, Future<Void>> groupRunnable = new ConcurrentHashMap<>();
 
-    public GroupMonitor(@Qualifier("pushThreadPool") ThreadPoolExecutor pushExecutor) {
+    /**
+     * 组与topic的映射
+     * set 也要注意线程安全诶..
+     */
+    private Map<String, Set<String>> groupTopic = new ConcurrentHashMap<>();
+
+    public GroupTopicMonitor(@Qualifier("pushThreadPool") ThreadPoolExecutor pushExecutor) {
         this.pushExecutor = pushExecutor;
     }
+
+    /*
+     * group method
+     */
 
     /**
      * Group 是否存在
@@ -46,7 +53,7 @@ public class GroupMonitor {
      * @param group 要判断的组名
      * @return 存在返回 true，否则返回 false
      */
-    public boolean isExist(String group) {
+    public boolean isGroupExist(String group) {
         return groupRunnable.containsKey(group);
     }
 
@@ -71,7 +78,7 @@ public class GroupMonitor {
             return;
         }
 
-        PushTaskThread thread = new PushTaskThread(group);
+        WaitMonitorThread thread = new WaitMonitorThread(group);
         // 执行线程
         Future<Void> future = pushExecutor.submit(thread, null);
         groupRunnable.put(group, future);
@@ -102,6 +109,34 @@ public class GroupMonitor {
 
         oldGroups.forEach(this::remOldGroup);
         newGroups.forEach(this::pushNewGroup);
+    }
+
+    /*
+     * topic method
+     */
+
+    /**
+     * topic 是否存在
+     *
+     * @param group topic 所在的组
+     * @param topic 要检查的 topic
+     * @return 是否存在
+     */
+    public boolean isTopicExist(String group, String topic) {
+        if (!isGroupExist(group)) {
+            return false;
+        }
+        return groupTopic.get(group).contains(topic);
+    }
+
+    /**
+     * 获取组内的 topic
+     *
+     * @param group 组
+     * @return 组内的 topic 数据
+     */
+    public Set<String> getCurrTopics(String group) {
+        return groupTopic.get(group);
     }
 
 }

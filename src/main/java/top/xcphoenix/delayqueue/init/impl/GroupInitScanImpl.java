@@ -1,11 +1,12 @@
 package top.xcphoenix.delayqueue.init.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
-import top.xcphoenix.delayqueue.init.InitScanService;
-import top.xcphoenix.delayqueue.monitor.global.GroupMonitor;
+import top.xcphoenix.delayqueue.init.InitScanInterface;
+import top.xcphoenix.delayqueue.monitor.global.GroupTopicMonitor;
 
 import java.util.Set;
 
@@ -18,12 +19,13 @@ import java.util.Set;
  */
 @Component("scan-group")
 @Order(1)
-public class GroupInitScanImpl implements InitScanService {
+@Slf4j
+public class GroupInitScanImpl implements InitScanInterface {
 
-    private GroupMonitor groupMonitor;
+    private GroupTopicMonitor groupMonitor;
     private StringRedisTemplate redisTemplate;
 
-    public GroupInitScanImpl(GroupMonitor groupMonitor, StringRedisTemplate stringRedisTemplate) {
+    public GroupInitScanImpl(GroupTopicMonitor groupMonitor, StringRedisTemplate stringRedisTemplate) {
         this.groupMonitor = groupMonitor;
         this.redisTemplate = stringRedisTemplate;
     }

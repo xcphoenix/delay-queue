@@ -28,7 +28,11 @@ public enum LuaEnum {
     /**
      * 移除未在待消费队列中的任务
      */
-    REMOVE_TASK("removeTask");
+    REMOVE_TASK("removeTask"),
+    /**
+     * 从任务列表中获取任务
+     */
+    GET_TASKS_IN_LIST("getTasksInList");
 
     LuaEnum(String fileName) {
         this.fileName = fileName + ".lua";
