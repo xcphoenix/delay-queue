@@ -32,7 +32,7 @@ public enum LuaEnum {
     /**
      * 从任务列表中获取任务
      */
-    GET_TASKS_IN_LIST("getTasksInList");
+    CONSUME_TASKS_IN_LIST("consumeTasksInList");
 
     LuaEnum(String fileName) {
         this.fileName = fileName + ".lua";

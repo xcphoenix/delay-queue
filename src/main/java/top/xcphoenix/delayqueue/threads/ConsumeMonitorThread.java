@@ -1,5 +1,6 @@
 package top.xcphoenix.delayqueue.threads;
 
+import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
@@ -10,6 +11,7 @@ import top.xcphoenix.delayqueue.utils.BeanUtil;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author xuanc
@@ -42,27 +44,36 @@ public class ConsumeMonitorThread implements Runnable {
     }
 
     @Override
-    public void run() {
+    public synchronized void run() {
         log.info("start monitor for consuming list, group: " + attendGroup + ", topic: " + attendTopic);
         String listKey = RedisDataStruct.consumingKey(BaseTask.of(attendGroup, attendTopic));
 
         while (!Thread.currentThread().isInterrupted()) {
             // TODO 获取回调线程池可用线程数
-            log.info("callback executor available thread number: ");
+            log.info(format("callback executor available thread number: "));
 
-            List<Task> taskList = delayQueueService.getTasksInList(attendGroup, attendTopic, 0);
+            List<Task> taskList = delayQueueService.consumeTasksInList(attendGroup, attendTopic, 5);
             if (taskList != null) {
-                log.info("get task number: " + taskList.size());
-                log.info("push tasks to callback...");
+                log.info(format("get task number: " + taskList.size()));
+                log.info(format("push tasks to callback..."));
                 // 放入回调线程池
-            } else {
-                log.info("no task, wait...");
-                Objects.requireNonNull(redisTemplate.getConnectionFactory());
-                redisTemplate.getConnectionFactory().getConnection().bLPop(0, listKey.getBytes());
+                log.info(format("tasks: " + JSON.toJSONString(taskList)));
 
-                log.info("there are new tasks be found");
+            } else {
+                log.info(format("no task, listen key: " + listKey));
+                Objects.requireNonNull(redisTemplate.getConnectionFactory());
+                String taskId = redisTemplate.boundListOps(listKey).leftPop(0, TimeUnit.MILLISECONDS);
+                log.info(format("block end"));
+                if (taskId != null) {
+                    redisTemplate.opsForList().leftPush(listKey, taskId);
+                }
+                log.info(format("there are new task: " + taskId));
             }
         }
+    }
+
+    private String format(String msg) {
+        return attendGroup + "," + attendTopic + " -> " + msg;
     }
 
 }

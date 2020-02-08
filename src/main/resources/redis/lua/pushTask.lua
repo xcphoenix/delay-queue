@@ -60,10 +60,4 @@ if status ~= nil and status == 'ok' then
     end
 end
 
-local max = redis.call('ZRANGE', waitingKey, 0, 0, 'WITHSCORES');
-
-if max ~= nil then
-    return max[2];
-end
-
 return nil;

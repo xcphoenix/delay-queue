@@ -17,7 +17,7 @@ local taskKey = KEYS[2]
 -- ARGV[1] == 0 会获取所有数据
 local number = ARGV[1] - 1
 
-log("EVAL lua [getTasksInList] ---------------------------")
+log("EVAL lua [consumeTasksInList] ---------------------------")
 log("consumingKey: " .. consumingKey ..", taskKey: " .. taskKey .. ", number: " .. ARGV[1])
 
 -- get task list
@@ -40,8 +40,11 @@ redis.call('LTRIM', consumingKey, number + 1, -1);
 log("get tasks from " .. taskKey)
 local tasks = redis.call('HMGET', taskKey, unpack(result));
 if type(tasks)=="table" then
+    log("task number: " .. #tasks)
     for k,v in ipairs(tasks) do
-        log("~ task[" .. k .. "] = " .. v);
+        if (v ~= nil) then
+            log("~ task[" .. k .. "] = " .. v);
+        end
     end
 end
 

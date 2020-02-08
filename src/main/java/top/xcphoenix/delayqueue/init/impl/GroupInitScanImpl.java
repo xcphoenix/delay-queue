@@ -6,7 +6,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
 import top.xcphoenix.delayqueue.init.InitScanInterface;
-import top.xcphoenix.delayqueue.monitor.global.GroupTopicMonitor;
+import top.xcphoenix.delayqueue.monitor.global.GroupMonitor;
 
 import java.util.Set;
 
@@ -22,18 +22,23 @@ import java.util.Set;
 @Slf4j
 public class GroupInitScanImpl implements InitScanInterface {
 
-    private GroupTopicMonitor groupMonitor;
+    private GroupMonitor groupMonitor;
     private StringRedisTemplate redisTemplate;
 
-    public GroupInitScanImpl(GroupTopicMonitor groupMonitor, StringRedisTemplate stringRedisTemplate) {
+    public GroupInitScanImpl(GroupMonitor groupMonitor, StringRedisTemplate stringRedisTemplate) {
         this.groupMonitor = groupMonitor;
         this.redisTemplate = stringRedisTemplate;
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
+        log.info("Group init...");
+
         String redisKey = RedisDataStruct.PROJECT_MONITOR_KEY;
         Set<Object> groups = redisTemplate.opsForHash().keys(redisKey);
+
+        log.info("Init groups: " + groups.toString());
+
         for (Object grp : groups) {
             String group;
             if (grp instanceof String) {

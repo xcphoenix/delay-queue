@@ -35,7 +35,7 @@ public class DelayQueueTest {
                 "testC",
                 "testD"
         };
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1000; i++) {
             Task task = Task.newTask(
                     "delay-queue",
                     topics[Math.abs(new Random().nextInt()) % 4],
@@ -59,7 +59,7 @@ public class DelayQueueTest {
 
     @Test
     void testConsume() {
-        List<Task> taskList = delayQueueService.getTasksInList("delay-queue", "testB", 5);
+        List<Task> taskList = delayQueueService.consumeTasksInList("delay-queue", "testB", 5);
         log.info(JSON.toJSONString(taskList));
     }
 

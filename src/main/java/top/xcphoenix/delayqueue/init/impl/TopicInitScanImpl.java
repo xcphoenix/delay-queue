@@ -1,15 +1,15 @@
 package top.xcphoenix.delayqueue.init.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
 import top.xcphoenix.delayqueue.init.InitScanInterface;
-import top.xcphoenix.delayqueue.monitor.global.GroupTopicMonitor;
+import top.xcphoenix.delayqueue.monitor.global.GroupMonitor;
+import top.xcphoenix.delayqueue.monitor.global.TopicMonitor;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -21,29 +21,39 @@ import java.util.Set;
  */
 @Component("scan-topic")
 @Order(2)
+@Slf4j
 public class TopicInitScanImpl implements InitScanInterface {
 
-    private GroupTopicMonitor groupTopicMonitor;
+    private GroupMonitor groupMonitor;
+    private TopicMonitor topicMonitor;
     private StringRedisTemplate redisTemplate;
 
-    public TopicInitScanImpl(GroupTopicMonitor groupTopicMonitor, StringRedisTemplate redisTemplate) {
-        this.groupTopicMonitor = groupTopicMonitor;
+    public TopicInitScanImpl(GroupMonitor groupTopicMonitor, TopicMonitor topicMonitor, StringRedisTemplate redisTemplate) {
+        this.groupMonitor = groupTopicMonitor;
+        this.topicMonitor = topicMonitor;
         this.redisTemplate = redisTemplate;
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
+        log.info("Topic init...");
+
         String redisKey = RedisDataStruct.PROJECT_MONITOR_KEY;
-        Set<String> groups = groupTopicMonitor.getCurrGroups();
+        Set<String> groups = groupMonitor.getCurrGroups();
 
         for (String group : groups) {
+            // get topics
             String topics = (String) redisTemplate.opsForHash().get(redisKey, group);
             String[] topicArr = topics == null ? new String[0]
                     : topics.split(RedisDataStruct.MONITOR_TOPIC_DELIMITER);
-            Set<String> topicSet = new HashSet<>(Arrays.asList(topicArr));
-            Set<String> atomicSet = Collections.synchronizedSet(topicSet);
-            // TODO 添加topic，创建 topic 监听线程 +
 
+            log.info("Init group: " + group + ", topics: " + Arrays.toString(topicArr));
+
+            // init
+            topicMonitor.init(group);
+            for (String topic : topicArr) {
+                topicMonitor.pushNewTopic(group, topic);
+            }
         }
 
     }
