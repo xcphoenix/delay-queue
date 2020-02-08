@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 import top.xcphoenix.delayqueue.constant.LuaEnum;
@@ -15,9 +16,7 @@ import top.xcphoenix.delayqueue.service.DelayQueueService;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -57,7 +56,7 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
                 String.valueOf(execTime)
         };
 
-        log.info("Add Task:: task => " + taskSerializer);
+        log.info("Add task: " + taskSerializer);
 
         redisTemplate.execute(getRedisScript(LuaEnum.ADD_TASK), keys, args);
     }
@@ -72,7 +71,7 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
                 taskField, waitingValue
         };
 
-        log.info("Remove task:: task => " + JSON.toJSONString(task));
+        log.info("Remove task: " + JSON.toJSONString(task));
 
         List<String> serializer = redisTemplate.execute(getRedisScript(LuaEnum.REMOVE_TASK), keys, args);
         if (serializer == null || serializer.size() == 0) {
@@ -83,24 +82,27 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
 
     @Override
     public Long pushTask(String group, long maxScore, long minScore) {
-        BaseTask abstractTask = BaseTask.of(group);
-        List<String> keys = getRedisKeys(abstractTask, false, true, true);
+        BaseTask taskTask = BaseTask.of(group);
+        List<String> keys = getRedisKeys(taskTask, false, true, true);
         Object[] args = new Object[]{
                 String.valueOf(maxScore), String.valueOf(minScore)
         };
 
-        log.info("Push Task:: group => " + group + ", keys => " + keys.toString() + ", args => " + Arrays.toString(args));
+        log.info("Push task -> group: " + group + ", keys: " + keys.toString() + ", args: " + Arrays.toString(args));
 
-        List<String> strScore = redisTemplate.execute(getRedisScript(LuaEnum.PUSH_TASK), keys, args);
-        if (strScore == null || strScore.size() == 0) {
+        redisTemplate.execute(getRedisScript(LuaEnum.PUSH_TASK), keys, args);
+
+        Set<ZSetOperations.TypedTuple<String>> strScore = redisTemplate.opsForZSet().rangeWithScores(RedisDataStruct.waitingKey(taskTask), 0, 0);
+        if (strScore == null || strScore.isEmpty()) {
             return null;
         }
+
         // 处理 lua 返回科学计数法
-        return new BigDecimal(strScore.get(0)).longValue();
+        return BigDecimal.valueOf(strScore.iterator().next().getScore()).longValue();
     }
 
     @Override
-    public List<Task> getTasksInList(String group, String topic, int limit) {
+    public List<Task> consumeTasksInList(String group, String topic, int limit) {
         if (limit < 0) {
             throw new IllegalArgumentException("limit can't < 0");
         }
@@ -112,7 +114,7 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
 
         List<Task> taskList = new ArrayList<>();
         List<String> tasksStr = redisTemplate.execute(
-                getRedisScript(LuaEnum.GET_TASKS_IN_LIST),
+                getRedisScript(LuaEnum.CONSUME_TASKS_IN_LIST),
                 Arrays.asList(consumingKey, taskKey),
                 String.valueOf(limit));
 
@@ -131,15 +133,15 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
     @PostConstruct
     @SuppressWarnings({"unchecked"})
     public void init() throws IOException {
-        log.info("Init:: loading lua script");
+        log.info("Init -> loading lua script");
 
         for (LuaEnum luaEnum : LuaEnum.values()) {
-            log.debug("- load script: " + luaEnum.getFileName());
+            log.debug("~ load script: " + luaEnum.getFileName());
 
             REDIS_SCRIPT.put(luaEnum.toString(), RedisScript.of(luaEnum.getContent(), String[].class));
         }
 
-        log.info("Init:: load lua scripts success");
+        log.info("Init -> load lua scripts success");
     }
 
     private RedisScript<List<String>> getRedisScript(LuaEnum luaEnum) {

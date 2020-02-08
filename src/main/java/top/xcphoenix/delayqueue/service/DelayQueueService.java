@@ -41,7 +41,7 @@ public interface DelayQueueService {
     Long pushTask(String group, long maxScore, long minScore);
 
     /**
-     * 获取指定 topic 的任务信息
+     * 获取并删除指定 topic 的任务队列数据
      *
      * @param group topic 所在的组
      * @param topic topic
@@ -50,6 +50,6 @@ public interface DelayQueueService {
      * @return 任务信息
      * @throws IllegalArgumentException limit < 0
      */
-    List<Task> getTasksInList(String group, String topic, int limit) throws IllegalArgumentException;
+    List<Task> consumeTasksInList(String group, String topic, int limit) throws IllegalArgumentException;
 
 }
