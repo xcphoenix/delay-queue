@@ -6,11 +6,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import top.xcphoenix.delayqueue.threads.PushMonitorThread;
 
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -31,15 +31,11 @@ public class GroupMonitor {
      * 组与线程的映射
      * thread safe
      */
-    private Map<String, Future<Void>> groupFuture = new ConcurrentHashMap<>();
+    private Map<String, PushMonitorThread> groupPushThread = new ConcurrentHashMap<>();
 
     public GroupMonitor(@Qualifier("pushThreadPool") ThreadPoolExecutor pushExecutor) {
         this.pushExecutor = pushExecutor;
     }
-
-    /*
-     * group method
-     */
 
     /**
      * Group 是否存在
@@ -48,7 +44,7 @@ public class GroupMonitor {
      * @return 存在返回 true，否则返回 false
      */
     public boolean isGroupExist(String group) {
-        return groupFuture.containsKey(group);
+        return groupPushThread.containsKey(group);
     }
 
     /**
@@ -57,7 +53,7 @@ public class GroupMonitor {
      * @return group list
      */
     public Set<String> getCurrGroups() {
-        return groupFuture.keySet();
+        return groupPushThread.keySet();
     }
 
     /**
@@ -68,15 +64,15 @@ public class GroupMonitor {
     public void pushNewGroup(String group) {
         log.info("Push new group: " + group);
 
-        if (groupFuture.containsKey(group)) {
+        if (groupPushThread.containsKey(group)) {
             log.warn("Group: " + group + " exists");
             return;
         }
 
         PushMonitorThread thread = new PushMonitorThread(group);
         // 执行线程
-        Future<Void> future = pushExecutor.submit(thread, null);
-        groupFuture.put(group, future);
+        pushExecutor.execute(thread);
+        groupPushThread.put(group, thread);
 
         log.info("Create new thread listen group => " + group);
     }
@@ -87,9 +83,10 @@ public class GroupMonitor {
      * @param group 要移除的 group
      */
     public void remOldGroup(String group) {
-        Future<Void> future = groupFuture.get(group);
-        groupFuture.remove(group);
-        future.cancel(true);
+        PushMonitorThread thread = groupPushThread.get(group);
+        groupPushThread.remove(group);
+        // 中断线程
+        thread.interrupt();
     }
 
     /**
@@ -98,12 +95,33 @@ public class GroupMonitor {
      * @param currGroups 当前
      */
     public void syncGroup(Set<String> currGroups) {
-        Set<String> oriGroups = groupFuture.keySet();
+        Set<String> oriGroups = groupPushThread.keySet();
         Collection<String> oldGroups = CollectionUtils.subtract(oriGroups, currGroups);
         Collection<String> newGroups = CollectionUtils.subtract(currGroups, oriGroups);
 
         oldGroups.forEach(this::remOldGroup);
         newGroups.forEach(this::pushNewGroup);
+    }
+
+    /**
+     * 与 push 线程的 nextTime 比较，若小于 nextTime 则更新值，并唤醒线程
+     *
+     * @param group 所在的组
+     * @param time 要比较/更新的时间戳
+     */
+    public void updateAndNotify(String group, Timestamp time) {
+        if (!isGroupExist(group)) {
+            throw new RuntimeException("group not exists");
+        }
+        PushMonitorThread thread = groupPushThread.get(group);
+        if (thread.getNextTime().get() > time.getTime()) {
+            synchronized (thread.getNextTime()) {
+                log.info("update next time in group: " + group + ", notify listen thread");
+
+                thread.setNextTime(time.getTime());
+                thread.getNextTime().notify();
+            }
+        }
     }
 
 }

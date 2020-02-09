@@ -8,4 +8,5 @@ package top.xcphoenix.delayqueue.service;
  * @date 2019/12/30 下午9:57
  */
 public interface CallbackService {
+
 }

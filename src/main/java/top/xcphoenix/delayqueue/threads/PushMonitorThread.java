@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @date 2020/2/5 下午5:24
  */
 @Slf4j
-public class PushMonitorThread implements Runnable {
+public class PushMonitorThread extends Thread {
 
     /**
      * 关注的 group
@@ -34,33 +34,44 @@ public class PushMonitorThread implements Runnable {
     }
 
     @Override
-    public synchronized void run() {
-        log.info("start monitor for waiting zset, attend group => " + attentionGroup);
+    public void run() {
+        synchronized (nextTime) {
+            log.info("start monitor for waiting zset, attend group => " + attentionGroup);
 
-        while (!Thread.currentThread().isInterrupted()) {
-            log.info("loop scan...");
-            long now = System.currentTimeMillis();
+            while (!Thread.currentThread().isInterrupted()) {
+                log.info("loop scan...");
+                long now = System.currentTimeMillis();
 
-            if (nextTime.get() <= now) {
-                // push processing
-                Long newTime = delayQueueService.pushTask(attentionGroup, System.currentTimeMillis(), nextTime.get());
-                // update nextTime
-                nextTime.set(Objects.requireNonNullElse(newTime, Long.MAX_VALUE));
-                log.info("next exec time: " + nextTime.get());
+                if (nextTime.get() <= now) {
+                    // push processing
+                    Long newTime = delayQueueService.pushTask(attentionGroup, System.currentTimeMillis(), nextTime.get());
+                    // update nextTime
+                    nextTime.set(Objects.requireNonNullElse(newTime, Long.MAX_VALUE));
+                    log.info("next exec time: " + nextTime.get());
 
-            } else {
-                log.info("wait until time is go");
-                try {
-                    // 阻塞
-                    wait(nextTime.get() - now);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    break;
+                } else {
+                    log.info("wait until time is go");
+                    try {
+                        // 阻塞
+                        nextTime.wait(nextTime.get() - now);
+                    } catch (InterruptedException e) {
+                        log.warn("thread exit", e);
+                        break;
+                    }
+                    log.info("wait end");
                 }
-                log.info("wait end");
             }
+
+            log.info("PushTask -> end push task, attend group: " + attentionGroup);
         }
-        log.info("PushTask -> end push task, attend group: " + attentionGroup);
+    }
+
+    public AtomicLong getNextTime() {
+        return nextTime;
+    }
+
+    public void setNextTime(long newTime) {
+        this.nextTime.set(newTime);
     }
 
 }

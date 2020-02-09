@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 import top.xcphoenix.delayqueue.constant.LuaEnum;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
+import top.xcphoenix.delayqueue.monitor.global.GroupMonitor;
 import top.xcphoenix.delayqueue.pojo.BaseTask;
 import top.xcphoenix.delayqueue.pojo.Task;
 import top.xcphoenix.delayqueue.service.DelayQueueService;
@@ -29,14 +30,17 @@ import java.util.concurrent.ConcurrentMap;
 @Service
 public class RedisDelayQueueServiceImpl implements DelayQueueService {
 
-    /**
-     * lua 脚本及其对应的 sha1 值
-     */
-    private static ConcurrentMap<String, RedisScript<List<String>>> REDIS_SCRIPT = new ConcurrentHashMap<>();
+    private GroupMonitor groupMonitor;
 
     private StringRedisTemplate redisTemplate;
 
-    public RedisDelayQueueServiceImpl(StringRedisTemplate redisTemplate) {
+    /**
+     * lua 脚本
+     */
+    private static ConcurrentMap<String, RedisScript<List<String>>> REDIS_SCRIPT = new ConcurrentHashMap<>();
+
+    public RedisDelayQueueServiceImpl(GroupMonitor groupMonitor, StringRedisTemplate redisTemplate) {
+        this.groupMonitor = groupMonitor;
         this.redisTemplate = redisTemplate;
     }
 
@@ -59,8 +63,12 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
         log.info("Add task: " + taskSerializer);
 
         redisTemplate.execute(getRedisScript(LuaEnum.ADD_TASK), keys, args);
+        groupMonitor.updateAndNotify(task.getGroup(), task.getDelayExecTime());
     }
 
+    /**
+     * TODO 移除任务后 nextTime 值可能会改变
+     */
     @Override
     public Task removeTask(BaseTask task) {
         List<String> keys = getRedisKeys(task, true, true);

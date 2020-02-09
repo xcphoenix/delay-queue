@@ -33,7 +33,8 @@ public class TopicMonitor {
      */
     private Map<String, Topics> groupTopic = new ConcurrentHashMap<>();
 
-    public TopicMonitor(GroupMonitor groupMonitor, @Qualifier("consumeThreadPool") ThreadPoolExecutor consumeExecutor) {
+    public TopicMonitor(GroupMonitor groupMonitor,
+                        @Qualifier("consumeThreadPool") ThreadPoolExecutor consumeExecutor) {
         this.groupMonitor = groupMonitor;
         this.consumeExecutor = consumeExecutor;
     }
