@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import top.xcphoenix.delayqueue.constant.ProjectConst;
+import top.xcphoenix.delayqueue.demo.CallbackDemo;
 import top.xcphoenix.delayqueue.pojo.BaseTask;
 import top.xcphoenix.delayqueue.pojo.Task;
 import top.xcphoenix.delayqueue.service.DelayQueueService;
@@ -40,6 +41,9 @@ public class DelayQueueTest {
                     "delay-queue",
                     topics[Math.abs(new Random().nextInt()) % 4],
                     new Timestamp(System.currentTimeMillis() + (new Random().nextLong() % (100 * 1000))));
+            if (new Random().nextInt() % 2 == 0) {
+                task.setCallback(CallbackDemo.class, null);
+            }
             delayQueueService.addTask(task);
         }
     }
