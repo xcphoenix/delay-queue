@@ -1,11 +1,12 @@
 package top.xcphoenix.delayqueue.threads;
 
-import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
+import top.xcphoenix.delayqueue.exception.CallbackException;
 import top.xcphoenix.delayqueue.pojo.BaseTask;
 import top.xcphoenix.delayqueue.pojo.Task;
+import top.xcphoenix.delayqueue.service.CallbackService;
 import top.xcphoenix.delayqueue.service.DelayQueueService;
 import top.xcphoenix.delayqueue.utils.BeanUtil;
 
@@ -37,6 +38,10 @@ public class ConsumeMonitorThread implements Runnable {
      * redis 操作
      */
     private DelayQueueService delayQueueService = BeanUtil.getBean(DelayQueueService.class);
+    /**
+     * 回调操作
+     */
+    private CallbackService callbackService = BeanUtil.getBean(CallbackService.class);
 
     public ConsumeMonitorThread(String attendGroup, String attendTopic) {
         this.attendGroup = attendGroup;
@@ -57,8 +62,13 @@ public class ConsumeMonitorThread implements Runnable {
                 log.info(format("get task number: " + taskList.size()));
                 log.info(format("push tasks to callback..."));
                 // 放入回调线程池
-                log.info(format("tasks: " + JSON.toJSONString(taskList)));
-
+                for (Task task : taskList) {
+                    try {
+                        callbackService.call(task);
+                    } catch (CallbackException e) {
+                        e.printStackTrace();
+                    }
+                }
             } else {
                 log.info(format("no task, listen key: " + listKey));
                 Objects.requireNonNull(redisTemplate.getConnectionFactory());

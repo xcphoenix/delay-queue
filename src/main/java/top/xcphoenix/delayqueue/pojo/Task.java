@@ -4,11 +4,11 @@ import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 import top.xcphoenix.delayqueue.manager.IdGenerator;
 import top.xcphoenix.delayqueue.manager.impl.SnowFlakeIdGenerator;
 
 import java.sql.Timestamp;
-import java.util.concurrent.Future;
 
 /**
  * TODO 自定义序列化
@@ -21,6 +21,7 @@ import java.util.concurrent.Future;
  */
 @Setter
 @Getter
+@ToString
 public class Task extends BaseTask {
 
     /**
@@ -36,12 +37,11 @@ public class Task extends BaseTask {
     /**
      * 回调接口构造器参数
      */
-    private Object[] args;
+    private Args args;
     /**
      * 回调接口
      */
-    @SuppressWarnings("rawtypes")
-    private Future callback;
+    private Class<? extends Callback> callback;
 
     @JSONField(deserialize = false, serialize = false)
     private IdGenerator idGenerator = new SnowFlakeIdGenerator();
@@ -91,9 +91,8 @@ public class Task extends BaseTask {
         return this;
     }
 
-    @SuppressWarnings("rawtypes")
-    public Task setCallback(Future callBack, Object[] args) {
-        this.callback = callBack;
+    public Task setCallback(Class<? extends Callback> clazz, Args args) {
+        this.callback = clazz;
         this.args = args;
         return this;
     }
