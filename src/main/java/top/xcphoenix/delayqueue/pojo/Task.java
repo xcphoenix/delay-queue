@@ -2,13 +2,13 @@ package top.xcphoenix.delayqueue.pojo;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import top.xcphoenix.delayqueue.manager.IdGenerator;
 import top.xcphoenix.delayqueue.manager.impl.SnowFlakeIdGenerator;
 
-import lombok.NonNull;
 import java.sql.Timestamp;
-import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 /**
  * TODO 自定义序列化
@@ -41,7 +41,7 @@ public class Task extends BaseTask {
      * 回调接口
      */
     @SuppressWarnings("rawtypes")
-    private Class<? extends Callable> callBack;
+    private Future callback;
 
     @JSONField(deserialize = false, serialize = false)
     private IdGenerator idGenerator = new SnowFlakeIdGenerator();
@@ -92,8 +92,8 @@ public class Task extends BaseTask {
     }
 
     @SuppressWarnings("rawtypes")
-    public Task setCallback(Class<? extends Callable> callBack, Object[] args) {
-        this.callBack = callBack;
+    public Task setCallback(Future callBack, Object[] args) {
+        this.callback = callBack;
         this.args = args;
         return this;
     }

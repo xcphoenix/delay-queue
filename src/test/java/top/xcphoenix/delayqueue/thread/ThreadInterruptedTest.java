@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 
 /**
  * @author      xuanc
@@ -115,6 +116,43 @@ public class ThreadInterruptedTest {
 
         try {
             Thread.sleep(5 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void testFutureTask() {
+        Runnable runnable = () -> {
+            synchronized (this) {
+                while (!Thread.currentThread().isInterrupted()) {
+                    System.out.println("runnable is running");
+                    try {
+                        wait(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        return;
+                    }
+                }
+            }
+        };
+
+        Thread thread = new Thread(runnable);
+        thread.start();
+        Future<Void> future = new FutureTask<>(runnable, null);
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("I want runnable stop");
+        future.cancel(true);
+        System.out.println("I tried");
+
+        try {
+            Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
