@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
 import top.xcphoenix.delayqueue.exception.CallbackException;
+import top.xcphoenix.delayqueue.monitor.global.ExecutorMonitor;
 import top.xcphoenix.delayqueue.pojo.BaseTask;
 import top.xcphoenix.delayqueue.pojo.Task;
 import top.xcphoenix.delayqueue.service.CallbackService;
@@ -31,6 +32,10 @@ public class ConsumeMonitorThread implements Runnable {
      */
     private String attendTopic;
     /**
+     * 线程池监控
+     */
+    private ExecutorMonitor executorMonitor = BeanUtil.getBean(ExecutorMonitor.class);
+    /**
      * redis 操作(BLPOP)
      */
     private StringRedisTemplate redisTemplate = BeanUtil.getBean(StringRedisTemplate.class);
@@ -54,10 +59,11 @@ public class ConsumeMonitorThread implements Runnable {
         String listKey = RedisDataStruct.consumingKey(BaseTask.of(attendGroup, attendTopic));
 
         while (!Thread.currentThread().isInterrupted()) {
-            // TODO 获取回调线程池可用线程数
-            log.info(format("callback executor available thread number: "));
+            int availableThreads = executorMonitor.getCallbackAvailableThreads();
+            log.info(format("callback executor available thread number: " + availableThreads));
 
-            List<Task> taskList = delayQueueService.consumeTasksInList(attendGroup, attendTopic, 5);
+            List<Task> taskList = delayQueueService.consumeTasksInList(attendGroup, attendTopic,
+                    Math.max(availableThreads, 5));
             if (taskList != null) {
                 log.info(format("get task number: " + taskList.size()));
                 log.info(format("push tasks to callback..."));

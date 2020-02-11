@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import top.xcphoenix.delayqueue.constant.ProjectConst;
 import top.xcphoenix.delayqueue.demo.CallbackDemo;
+import top.xcphoenix.delayqueue.exception.RegisterException;
+import top.xcphoenix.delayqueue.monitor.ServiceRegister;
 import top.xcphoenix.delayqueue.pojo.BaseTask;
 import top.xcphoenix.delayqueue.pojo.Task;
 import top.xcphoenix.delayqueue.service.DelayQueueService;
@@ -26,19 +28,29 @@ import java.util.Random;
 public class DelayQueueTest {
 
     @Autowired
+    private ServiceRegister register;
+
+    @Autowired
     private DelayQueueService delayQueueService;
 
     @Test
-    void testAddTask() {
+    void testAddTask() throws RegisterException {
+        String group = "delay-queue";
+
+        register.registerGroup(group);
         String[] topics = new String[] {
                 "testA",
                 "testB",
                 "testC",
                 "testD"
         };
+        for (String topic : topics) {
+            register.registerTopic(group, topic);
+        }
+
         for (int i = 0; i < 1000; i++) {
             Task task = Task.newTask(
-                    "delay-queue",
+                    group,
                     topics[Math.abs(new Random().nextInt()) % 4],
                     new Timestamp(System.currentTimeMillis() + (new Random().nextLong() % (100 * 1000))));
             if (new Random().nextInt() % 2 == 0) {
