@@ -9,7 +9,9 @@ public interface Callback {
 
     /**
      * 要执行的任务
+     *
+     * @throws Exception 实现类运行产生的异常
      */
-    void call();
+    void call() throws Exception;
 
 }

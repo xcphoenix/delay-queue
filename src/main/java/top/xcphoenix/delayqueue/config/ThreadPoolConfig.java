@@ -65,7 +65,7 @@ public class ThreadPoolConfig {
      */
     @Bean(name = "callbackThreadPool")
     public ThreadPoolExecutor callbackThreadPool() {
-        int corePoolSize = 20;
+        int corePoolSize = 50;
         int maxPoolSize = 100;
         long keepAliveTime = 0L;
         ThreadFactory pushThreadFactory = new ThreadFactoryBuilder()
