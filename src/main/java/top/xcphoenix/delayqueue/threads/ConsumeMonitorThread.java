@@ -1,7 +1,12 @@
 package top.xcphoenix.delayqueue.threads;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.connection.jedis.JedisClusterConnection;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import redis.clients.jedis.Client;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisConnectionException;
+import redis.clients.jedis.util.JedisClusterCRC16;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
 import top.xcphoenix.delayqueue.exception.CallbackException;
 import top.xcphoenix.delayqueue.monitor.global.ExecutorMonitor;
@@ -11,9 +16,9 @@ import top.xcphoenix.delayqueue.service.CallbackService;
 import top.xcphoenix.delayqueue.service.DelayQueueService;
 import top.xcphoenix.delayqueue.utils.BeanUtil;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author xuanc
@@ -21,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2020/2/7 上午11:21
  */
 @Slf4j
-public class ConsumeMonitorThread implements Runnable {
+public class ConsumeMonitorThread extends Thread {
 
     /**
      * 关注的 group
@@ -31,6 +36,14 @@ public class ConsumeMonitorThread implements Runnable {
      * 关注 group 下的 topic
      */
     private String attendTopic;
+    /**
+     * for stop blpop
+     */
+    private Jedis jedis;
+    /**
+     * 控制线程结束
+     */
+    private volatile boolean stop = false;
     /**
      * 线程池监控
      */
@@ -54,11 +67,11 @@ public class ConsumeMonitorThread implements Runnable {
     }
 
     @Override
-    public synchronized void run() {
+    public void run() {
         log.info("start monitor for consuming list, group: " + attendGroup + ", topic: " + attendTopic);
         String listKey = RedisDataStruct.consumingKey(BaseTask.of(attendGroup, attendTopic));
 
-        while (!Thread.currentThread().isInterrupted()) {
+        while (!stop) {
             int availableThreads = executorMonitor.getCallbackAvailableThreads();
             log.info(format("callback executor available thread number: " + availableThreads));
 
@@ -77,15 +90,51 @@ public class ConsumeMonitorThread implements Runnable {
                 }
             } else {
                 log.info(format("no task, listen key: " + listKey));
-                Objects.requireNonNull(redisTemplate.getConnectionFactory());
-                String taskId = redisTemplate.boundListOps(listKey).leftPop(0, TimeUnit.MILLISECONDS);
-                log.info(format("block end"));
-                if (taskId != null) {
-                    redisTemplate.opsForList().leftPush(listKey, taskId);
+                List<String> results;
+                this.jedis = getJedis(listKey);
+                try {
+                    results = jedis.blpop(0, listKey);
+                } catch (JedisConnectionException ex) {
+                    if (this.stop) {
+                        log.info(format("Thread end"));
+                    } else {
+                        ex.printStackTrace();
+                        // TODO 重试
+                    }
+                    break;
+                } finally {
+                    jedis.close();
+                    jedis = null;
                 }
-                log.info(format("there are new task: " + taskId));
+                log.info(format("block end"));
+                if (results != null && results.size() >= 2) {
+                    String taskId = results.get(1);
+                    redisTemplate.opsForList().leftPush(listKey, taskId);
+                    log.info(format("there are new task: " + taskId));
+                }
             }
         }
+
+        log.info(format("listen thread end"));
+    }
+
+    public void closeJedis() {
+        this.stop = true;
+        if (this.jedis != null) {
+            try {
+                jedis.getClient().getSocket().close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private Jedis getJedis(String key) {
+        JedisClusterConnection clusterConnection = (JedisClusterConnection) Objects.requireNonNull(
+                redisTemplate.getConnectionFactory()).getConnection();
+        Client client = clusterConnection.getNativeConnection()
+                .getConnectionFromSlot(JedisClusterCRC16.getSlot(key)).getClient();
+        return new Jedis(client.getHost(), client.getPort());
     }
 
     private String format(String msg) {

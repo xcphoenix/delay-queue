@@ -8,7 +8,6 @@ import top.xcphoenix.delayqueue.threads.ConsumeMonitorThread;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -90,37 +89,53 @@ public class TopicMonitor {
 
         // start monitor thread
         ConsumeMonitorThread thread = new ConsumeMonitorThread(group, topic);
-        Future<Void> future = consumeExecutor.submit(thread, null);
-        groupTopic.get(group).setTopic(topic, future);
+        consumeExecutor.execute(thread);
+        groupTopic.get(group).setTopic(topic, thread);
 
         log.info("create new thread listen topic: " + topic + " in group: " + group);
     }
 
     /**
-     * TODO
+     * 移除 topic
+     *
+     * @param group topic 所在组
+     * @param topic topic
      */
     public void remOldTopic(String group, String topic) {
-
+        log.info("remove group: " + group + ", topic: " + topic);
+        if (!isTopicExist(group, topic)) {
+            log.warn("remove error, group: " + group + ", topic: " + topic + " not exists");
+            return;
+        }
+        ConsumeMonitorThread thread = groupTopic.get(group).getThread(topic);
+        thread.interrupt();
+        thread.closeJedis();
+        groupTopic.get(group).removeTopic(topic);
+        log.info("remove success");
     }
 
     private static class Topics {
 
-        Map<String, Future<Void>> topicFuture = new ConcurrentHashMap<>();
+        Map<String, ConsumeMonitorThread> topicConsumeThread = new ConcurrentHashMap<>();
 
         boolean isExist(String topic) {
-            return topicFuture.containsKey(topic);
+            return topicConsumeThread.containsKey(topic);
         }
 
-        Future<Void> getFuture(String topic) {
-            return topicFuture.get(topic);
+        ConsumeMonitorThread getThread(String topic) {
+            return topicConsumeThread.get(topic);
         }
 
-        void setTopic(String topic, Future<Void> future) {
-            topicFuture.put(topic, future);
+        void setTopic(String topic, ConsumeMonitorThread thread) {
+            topicConsumeThread.put(topic, thread);
         }
 
         Set<String> getTopics() {
-            return topicFuture.keySet();
+            return topicConsumeThread.keySet();
+        }
+
+        void removeTopic(String topic) {
+            topicConsumeThread.remove(topic);
         }
 
     }

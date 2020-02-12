@@ -8,7 +8,10 @@ import top.xcphoenix.delayqueue.exception.RegisterException;
 import top.xcphoenix.delayqueue.monitor.global.GroupMonitor;
 import top.xcphoenix.delayqueue.monitor.global.TopicMonitor;
 
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 服务注册与取消
@@ -116,7 +119,16 @@ public class ServiceRegister {
      *
      * @param group 要结束的组
      */
-    public void cancelGroup(String group) {
+    public synchronized void cancelGroup(String group) {
+        if (!isGroupRegistered(group)) {
+            log.warn("group: " + group + " is not registered");
+            return;
+        }
+        log.info("cancel topics...");
+        topicMonitor.getCurrTopics(group).forEach(s -> cancelTopic(group, s));
+        groupMonitor.remOldGroup(group);
+        redisTemplate.opsForHash().delete(summaryKey, group);
+        log.info("cancel group: " + group + " done");
     }
 
     /**
@@ -125,7 +137,28 @@ public class ServiceRegister {
      * @param group topic 所在的组
      * @param topic topic
      */
-    public void cancelTopic(String group, String topic) {
+    public synchronized void cancelTopic(String group, String topic) {
+        if (!isTopicRegistered(group, topic)) {
+            log.warn("topic: " + topic + " in group: " + group + " is not registered");
+            return;
+        }
+        log.info("cancel topic: " + topic + " in group: " + group);
+
+        topicMonitor.remOldTopic(group, topic);
+        String topics = (String) redisTemplate.opsForHash().get(summaryKey, group);
+        assert topics != null;
+        String[] topicArr = topics.split(RedisDataStruct.MONITOR_TOPIC_DELIMITER);
+        for (int i = 0; i < topicArr.length; i++) {
+            if (topicArr[i].equals(topic)) {
+                topicArr[i] = null;
+                break;
+            }
+        }
+        topics = Arrays.stream(topicArr).filter(Objects::nonNull)
+                .collect(Collectors.joining(RedisDataStruct.MONITOR_TOPIC_DELIMITER));
+        redisTemplate.opsForHash().put(summaryKey, group, topics);
+
+        log.info("cancel topic: " + topic + " done");
     }
 
 
