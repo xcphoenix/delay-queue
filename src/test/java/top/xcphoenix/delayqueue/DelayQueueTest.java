@@ -52,7 +52,8 @@ public class DelayQueueTest {
             Task task = Task.newTask(
                     group,
                     topics[Math.abs(new Random().nextInt()) % 4],
-                    new Timestamp(System.currentTimeMillis() + (new Random().nextLong() % (100 * 1000))));
+                    new Timestamp(System.currentTimeMillis() + 10 * 1000
+                            + Math.abs(new Random().nextLong() % (100 * 1000))));
             if (new Random().nextInt() % 2 == 0) {
                 task.setCallback(CallbackDemo.class, null);
             }
