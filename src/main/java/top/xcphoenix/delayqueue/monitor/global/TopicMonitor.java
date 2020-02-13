@@ -3,7 +3,7 @@ package top.xcphoenix.delayqueue.monitor.global;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import top.xcphoenix.delayqueue.threads.ConsumeMonitorThread;
+import top.xcphoenix.delayqueue.service.threads.ConsumeMonitorThread;
 
 import java.util.Map;
 import java.util.Set;
@@ -109,7 +109,6 @@ public class TopicMonitor {
         }
         ConsumeMonitorThread thread = groupTopic.get(group).getThread(topic);
         thread.interrupt();
-        thread.closeJedis();
         groupTopic.get(group).removeTopic(topic);
         log.info("remove success");
     }

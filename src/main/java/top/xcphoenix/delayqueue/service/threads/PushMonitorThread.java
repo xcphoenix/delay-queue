@@ -1,10 +1,10 @@
-package top.xcphoenix.delayqueue.threads;
+package top.xcphoenix.delayqueue.service.threads;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import top.xcphoenix.delayqueue.service.DelayQueueService;
+import top.xcphoenix.delayqueue.service.core.DelayQueueService;
 import top.xcphoenix.delayqueue.utils.BeanUtil;
 
-import javax.validation.constraints.NotNull;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -29,7 +29,7 @@ public class PushMonitorThread extends Thread {
      */
     private DelayQueueService delayQueueService = BeanUtil.getBean(DelayQueueService.class);
 
-    public PushMonitorThread(@NotNull String attentionGroup) {
+    public PushMonitorThread(@NonNull String attentionGroup) {
         this.attentionGroup = attentionGroup;
     }
 
@@ -55,7 +55,7 @@ public class PushMonitorThread extends Thread {
                         // 阻塞
                         nextTime.wait(nextTime.get() - now);
                     } catch (InterruptedException e) {
-                        log.warn("thread exit", e);
+                        log.warn("thread exit");
                         break;
                     }
                     log.info("wait end");
@@ -64,6 +64,12 @@ public class PushMonitorThread extends Thread {
 
             log.info("PushTask -> end push task, attend group: " + attentionGroup);
         }
+    }
+
+    @Override
+    public void interrupt() {
+        log.info("terminal thread");
+        super.interrupt();
     }
 
     public AtomicLong getNextTime() {

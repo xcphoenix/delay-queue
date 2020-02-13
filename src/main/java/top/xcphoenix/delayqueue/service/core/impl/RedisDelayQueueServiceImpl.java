@@ -1,4 +1,4 @@
-package top.xcphoenix.delayqueue.service.impl;
+package top.xcphoenix.delayqueue.service.core.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -12,7 +12,7 @@ import top.xcphoenix.delayqueue.constant.RedisDataStruct;
 import top.xcphoenix.delayqueue.monitor.global.GroupMonitor;
 import top.xcphoenix.delayqueue.pojo.BaseTask;
 import top.xcphoenix.delayqueue.pojo.Task;
-import top.xcphoenix.delayqueue.service.DelayQueueService;
+import top.xcphoenix.delayqueue.service.core.DelayQueueService;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;

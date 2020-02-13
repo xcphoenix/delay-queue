@@ -10,6 +10,13 @@ local function log(str)
     redis.log(redis.LOG_VERBOSE, '[LUA] ' .. str);
 end
 
+local function check(val)
+    if type(val) == "boolean" then
+        return val and "true" or "false";
+    end
+    return val;
+end
+
 local consumingKey = KEYS[1]
 local taskKey = KEYS[2]
 
@@ -29,7 +36,7 @@ if result == nil or #result == 0 then
 end
 log("result:");
 for k,v in ipairs(result) do
-    log("~ result[" .. k .. "] = " .. v);
+    log("~ result[" .. k .. "] = " .. check(v));
 end
 
 -- remove tasks in consumingKey
@@ -43,7 +50,7 @@ if type(tasks)=="table" then
     log("task number: " .. #tasks)
     for k,v in ipairs(tasks) do
         if (v ~= nil) then
-            log("~ task[" .. k .. "] = " .. v);
+            log("~ task[" .. k .. "] = " .. check(v));
         end
     end
 end

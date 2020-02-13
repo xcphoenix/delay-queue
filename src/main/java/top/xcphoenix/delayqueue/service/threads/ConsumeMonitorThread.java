@@ -1,4 +1,4 @@
-package top.xcphoenix.delayqueue.threads;
+package top.xcphoenix.delayqueue.service.threads;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection;
@@ -12,8 +12,8 @@ import top.xcphoenix.delayqueue.exception.CallbackException;
 import top.xcphoenix.delayqueue.monitor.global.ExecutorMonitor;
 import top.xcphoenix.delayqueue.pojo.BaseTask;
 import top.xcphoenix.delayqueue.pojo.Task;
-import top.xcphoenix.delayqueue.service.CallbackService;
-import top.xcphoenix.delayqueue.service.DelayQueueService;
+import top.xcphoenix.delayqueue.service.core.CallbackService;
+import top.xcphoenix.delayqueue.service.core.DelayQueueService;
 import top.xcphoenix.delayqueue.utils.BeanUtil;
 
 import java.io.IOException;
@@ -118,7 +118,14 @@ public class ConsumeMonitorThread extends Thread {
         log.info(format("listen thread end"));
     }
 
-    public void closeJedis() {
+    @Override
+    public void interrupt() {
+        log.info("terminal thread");
+        this.closeJedis();
+        super.interrupt();
+    }
+
+    private void closeJedis() {
         this.stop = true;
         if (this.jedis != null) {
             try {
