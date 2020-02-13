@@ -1,4 +1,4 @@
-package top.xcphoenix.delayqueue.init;
+package top.xcphoenix.delayqueue.monitor.init;
 
 import org.springframework.boot.CommandLineRunner;
 

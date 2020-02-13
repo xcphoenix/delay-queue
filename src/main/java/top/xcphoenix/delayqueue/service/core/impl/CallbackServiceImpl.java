@@ -1,4 +1,4 @@
-package top.xcphoenix.delayqueue.service.impl;
+package top.xcphoenix.delayqueue.service.core.impl;
 
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +8,7 @@ import top.xcphoenix.delayqueue.exception.CallbackException;
 import top.xcphoenix.delayqueue.pojo.Args;
 import top.xcphoenix.delayqueue.pojo.Callback;
 import top.xcphoenix.delayqueue.pojo.Task;
-import top.xcphoenix.delayqueue.service.CallbackService;
+import top.xcphoenix.delayqueue.service.core.CallbackService;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

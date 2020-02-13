@@ -161,5 +161,4 @@ public class ServiceRegister {
         log.info("cancel topic: " + topic + " done");
     }
 
-
 }

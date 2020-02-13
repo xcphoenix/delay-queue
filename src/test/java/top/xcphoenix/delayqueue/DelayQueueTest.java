@@ -12,7 +12,7 @@ import top.xcphoenix.delayqueue.exception.RegisterException;
 import top.xcphoenix.delayqueue.monitor.ServiceRegister;
 import top.xcphoenix.delayqueue.pojo.BaseTask;
 import top.xcphoenix.delayqueue.pojo.Task;
-import top.xcphoenix.delayqueue.service.DelayQueueService;
+import top.xcphoenix.delayqueue.service.core.DelayQueueService;
 
 import java.sql.Timestamp;
 import java.util.List;

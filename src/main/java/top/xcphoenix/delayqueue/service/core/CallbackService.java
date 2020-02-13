@@ -1,4 +1,4 @@
-package top.xcphoenix.delayqueue.service;
+package top.xcphoenix.delayqueue.service.core;
 
 import top.xcphoenix.delayqueue.exception.CallbackException;
 import top.xcphoenix.delayqueue.pojo.Callback;
@@ -8,8 +8,7 @@ import top.xcphoenix.delayqueue.pojo.Task;
  * 任务回调
  *
  * @author xuanc
- * @version 1.0
- * @date 2019/12/30 下午9:57
+ * @version 1.0 * @date 2019/12/30 下午9:57
  */
 public interface CallbackService {
 

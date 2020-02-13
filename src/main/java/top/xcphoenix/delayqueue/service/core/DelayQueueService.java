@@ -1,4 +1,4 @@
-package top.xcphoenix.delayqueue.service;
+package top.xcphoenix.delayqueue.service.core;
 
 import top.xcphoenix.delayqueue.pojo.BaseTask;
 import top.xcphoenix.delayqueue.pojo.Task;

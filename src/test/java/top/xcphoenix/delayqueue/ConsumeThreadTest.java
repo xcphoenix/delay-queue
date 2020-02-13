@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import top.xcphoenix.delayqueue.threads.ConsumeMonitorThread;
+import top.xcphoenix.delayqueue.service.threads.ConsumeMonitorThread;
 
 import java.util.concurrent.Executor;
 
