@@ -49,16 +49,18 @@ public class DestroyService implements DisposableBean {
         // 阻止新的任务进入
         executor.shutdown();
         // 超时则强制关闭
-        try {
-            if (!executor.awaitTermination(timeout, timeUnit)) {
-                log.warn("terminal executor: " + executorName + " timeout(" + timeout + timeUnit.name() + "), force stop!");
-                List<Runnable> canceledJobs =  executor.shutdownNow();
-                log.warn("force stop end, there are " + canceledJobs.size() + " threads be canceled");
+        if (!executor.isTerminated()) {
+            try {
+                if (!executor.awaitTermination(timeout, timeUnit)) {
+                    log.warn("terminal executor: " + executorName + " timeout(" + timeout + timeUnit.name() + "), force stop!");
+                    List<Runnable> canceledJobs =  executor.shutdownNow();
+                    log.warn("force stop end, there are " + canceledJobs.size() + " threads be canceled");
+                }
+            } catch (InterruptedException e) {
+                log.error("Executor: "+ executorName + " be interrupted!", e);
             }
-            log.info("Terminal executor success");
-        } catch (InterruptedException e) {
-            log.error("Executor: "+ executorName + " be interrupted!", e);
         }
+        log.info("Terminal executor success");
     }
 
 }

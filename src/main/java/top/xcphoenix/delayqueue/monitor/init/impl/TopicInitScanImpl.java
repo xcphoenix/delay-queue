@@ -5,9 +5,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
-import top.xcphoenix.delayqueue.monitor.init.InitScanInterface;
 import top.xcphoenix.delayqueue.monitor.global.GroupMonitor;
 import top.xcphoenix.delayqueue.monitor.global.TopicMonitor;
+import top.xcphoenix.delayqueue.monitor.init.InitScanInterface;
 
 import java.util.Arrays;
 import java.util.Set;

@@ -36,7 +36,11 @@ if result == nil or #result == 0 then
 end
 log("result:");
 for k,v in ipairs(result) do
-    log("~ result[" .. k .. "] = " .. check(v));
+    if (type(v) == string and v == "") then
+        table.remove(result, k);
+    else
+        log("~ result[" .. k .. "] = " .. check(v));
+    end
 end
 
 -- remove tasks in consumingKey

@@ -28,7 +28,7 @@ public class ThreadPoolConfig {
                 .setNameFormat("PushPool-%d")
                 .build();
         TimeUnit unit = TimeUnit.MILLISECONDS;
-        BlockingDeque<Runnable> workQueue = new LinkedBlockingDeque<>();
+        BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(maxPoolSize);
 
         // 创建线程池
         return new ThreadPoolExecutor(
@@ -50,7 +50,7 @@ public class ThreadPoolConfig {
                 .setNameFormat("ConsumePool-%d")
                 .build();
         TimeUnit unit = TimeUnit.MILLISECONDS;
-        BlockingDeque<Runnable> workQueue = new LinkedBlockingDeque<>();
+        BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(maxPoolSize);
 
         // 创建线程池
         return new ThreadPoolExecutor(
@@ -66,13 +66,13 @@ public class ThreadPoolConfig {
     @Bean(name = "callbackThreadPool")
     public ThreadPoolExecutor callbackThreadPool() {
         int corePoolSize = 50;
-        int maxPoolSize = 100;
+        int maxPoolSize = 250;
         long keepAliveTime = 0L;
         ThreadFactory pushThreadFactory = new ThreadFactoryBuilder()
                 .setNameFormat("CallbackPool-%d")
                 .build();
         TimeUnit unit = TimeUnit.MILLISECONDS;
-        BlockingDeque<Runnable> workQueue = new LinkedBlockingDeque<>();
+        BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(maxPoolSize);
 
         // 创建线程池
         return new ThreadPoolExecutor(

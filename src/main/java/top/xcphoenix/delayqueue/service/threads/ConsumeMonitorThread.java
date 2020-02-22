@@ -1,12 +1,8 @@
 package top.xcphoenix.delayqueue.service.threads;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.connection.jedis.JedisClusterConnection;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.exceptions.JedisConnectionException;
-import redis.clients.jedis.util.JedisClusterCRC16;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
 import top.xcphoenix.delayqueue.exception.CallbackException;
 import top.xcphoenix.delayqueue.monitor.global.ExecutorMonitor;
@@ -16,9 +12,8 @@ import top.xcphoenix.delayqueue.service.core.CallbackService;
 import top.xcphoenix.delayqueue.service.core.DelayQueueService;
 import top.xcphoenix.delayqueue.utils.BeanUtil;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author xuanc
@@ -47,7 +42,7 @@ public class ConsumeMonitorThread extends Thread {
     /**
      * 线程池监控
      */
-    private ExecutorMonitor executorMonitor = BeanUtil.getBean(ExecutorMonitor.class);
+    private final ExecutorMonitor executorMonitor = BeanUtil.getBean(ExecutorMonitor.class);
     /**
      * redis 操作(BLPOP)
      */
@@ -72,46 +67,37 @@ public class ConsumeMonitorThread extends Thread {
         String listKey = RedisDataStruct.consumingKey(BaseTask.of(attendGroup, attendTopic));
 
         while (!stop) {
-            int availableThreads = executorMonitor.getCallbackAvailableThreads();
-            log.info(format("callback executor available thread number: " + availableThreads));
+            List<Task> taskList;
+            synchronized (executorMonitor) {
+                int availableThreads = executorMonitor.getCallbackAvailableThreads();
+                // == 0 will get all data
+                if (availableThreads == 0) {
+                    continue;
+                }
+                log.info(format("callback executor available thread number: " + availableThreads));
+                taskList = delayQueueService.consumeTasksInList(attendGroup, attendTopic, availableThreads);
+                if (taskList != null) {
+                    log.info(format("get task number: " + taskList.size()));
+                    log.info(format("push tasks to callback..."));
+                    // 放入回调线程池
+                    for (Task task : taskList) {
+                        try {
+                            callbackService.call(task);
+                        } catch (CallbackException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
 
-            List<Task> taskList = delayQueueService.consumeTasksInList(attendGroup, attendTopic,
-                    Math.max(availableThreads, 5));
-            if (taskList != null) {
-                log.info(format("get task number: " + taskList.size()));
-                log.info(format("push tasks to callback..."));
-                // 放入回调线程池
-                for (Task task : taskList) {
-                    try {
-                        callbackService.call(task);
-                    } catch (CallbackException e) {
-                        e.printStackTrace();
-                    }
-                }
-            } else {
+            if (taskList == null) {
                 log.info(format("no task, listen key: " + listKey));
-                List<String> results;
-                this.jedis = getJedis(listKey);
-                try {
-                    results = jedis.blpop(0, listKey);
-                } catch (JedisConnectionException ex) {
-                    if (this.stop) {
-                        log.info(format("Thread end"));
-                    } else {
-                        ex.printStackTrace();
-                        // TODO 重试
-                    }
-                    break;
-                } finally {
-                    jedis.close();
-                    jedis = null;
-                }
-                log.info(format("block end"));
-                if (results != null && results.size() >= 2) {
-                    String taskId = results.get(1);
+                String taskId = redisTemplate.boundListOps(listKey).leftPop(0, TimeUnit.SECONDS);
+                if (taskId != null && !"".equals(taskId)) {
                     redisTemplate.opsForList().leftPush(listKey, taskId);
                     log.info(format("there are new task: " + taskId));
                 }
+                log.info(format("block end"));
             }
         }
 
@@ -121,27 +107,15 @@ public class ConsumeMonitorThread extends Thread {
     @Override
     public void interrupt() {
         log.info("terminal thread");
-        this.closeJedis();
+        close();
         super.interrupt();
     }
 
-    private void closeJedis() {
+    private void close() {
         this.stop = true;
-        if (this.jedis != null) {
-            try {
-                jedis.getClient().getSocket().close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private Jedis getJedis(String key) {
-        JedisClusterConnection clusterConnection = (JedisClusterConnection) Objects.requireNonNull(
-                redisTemplate.getConnectionFactory()).getConnection();
-        Client client = clusterConnection.getNativeConnection()
-                .getConnectionFromSlot(JedisClusterCRC16.getSlot(key)).getClient();
-        return new Jedis(client.getHost(), client.getPort());
+        // add "" string for blpop
+        // also filter for lua
+        redisTemplate.opsForList().leftPush(RedisDataStruct.consumingKey(BaseTask.of(attendGroup, attendTopic)), "");
     }
 
     private String format(String msg) {

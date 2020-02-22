@@ -23,7 +23,7 @@ public class PushMonitorThread extends Thread {
     /**
      * 下一次操作的时间
      */
-    private AtomicLong nextTime = new AtomicLong(0);
+    private final AtomicLong nextTime = new AtomicLong(0);
     /**
      * get delayqueue for push
      */
