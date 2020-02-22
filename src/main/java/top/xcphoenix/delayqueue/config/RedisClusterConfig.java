@@ -10,6 +10,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import redis.clients.jedis.JedisPoolConfig;
 
 /**
  * @author      xuanc
@@ -20,19 +21,23 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisClusterConfig {
 
+    private JedisPoolConfig jedisPoolConfig;
     private ClusterConfigurationProperties clusterConfigurationProperties;
 
-    public RedisClusterConfig(ClusterConfigurationProperties clusterConfigurationProperties) {
+    public RedisClusterConfig(JedisPoolConfig jedisPoolConfig, ClusterConfigurationProperties clusterConfigurationProperties) {
+        this.jedisPoolConfig = jedisPoolConfig;
         this.clusterConfigurationProperties = clusterConfigurationProperties;
     }
 
     @Bean
     public RedisConnectionFactory connectionFactory() {
         log.info("RedisProps ==> " + JSON.toJSON(this.clusterConfigurationProperties).toString());
+
         return new JedisConnectionFactory(
                 new RedisClusterConfiguration(
                         clusterConfigurationProperties.getNodes()
-                )
+                ),
+                jedisPoolConfig
         );
     }
 

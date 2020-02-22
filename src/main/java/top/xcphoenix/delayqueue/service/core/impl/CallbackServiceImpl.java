@@ -58,6 +58,10 @@ public class CallbackServiceImpl implements CallbackService {
     @Async("callbackThreadPool")
     @Override
     public void call(Task task) throws CallbackException {
+        if (task == null) {
+            throw new IllegalArgumentException("task not be null");
+        }
+
         Callback callback = init(task);
         if (callback == null) {
             return;

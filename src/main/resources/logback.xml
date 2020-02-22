@@ -27,22 +27,18 @@
 		<file>./logs/${app.name}.log</file>
 		
 		<!--定义日志滚动的策略-->
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
 			<!--定义文件滚动时的文件名的格式-->
 			<fileNamePattern>
 				<!--${scheduler.manager.server.home}/logs/${app.name}.%d{yyyy-MM-dd.HH}.log.gz-->
-				./logs/${app.name}.%d{yyyy-MM-dd.HH}.log.gz
+				./logs/${app.name}.%d{yyyy-MM-dd}.%i.log.gz
 			</fileNamePattern>
+			<maxFileSize>100MB</maxFileSize>
 			<!--60天的时间周期，日志量最大20GB-->
 			<maxHistory>60</maxHistory>
 			<!-- 该属性在 1.1.6版本后 才开始支持-->
 			<totalSizeCap>200MB</totalSizeCap>
 		</rollingPolicy>
-		
-		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-			<!--每个日志文件最大100MB-->
-			<maxFileSize>100MB</maxFileSize>
-		</triggeringPolicy>
 		
 		<!--定义输出格式-->
 		<encoder>

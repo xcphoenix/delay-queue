@@ -15,6 +15,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Component
 public class ExecutorMonitor {
 
+    private volatile int callTmpOccupy = 0;
+
     private ThreadPoolExecutor pushExecutor;
     private ThreadPoolExecutor consumeExecutor;
     private ThreadPoolExecutor callbackExecutor;
@@ -33,7 +35,7 @@ public class ExecutorMonitor {
      * @return 线程池可用线程
      */
     public synchronized int getCallbackAvailableThreads() {
-        return callbackExecutor.getCorePoolSize() - callbackExecutor.getActiveCount();
+        return callbackExecutor.getMaximumPoolSize() - callbackExecutor.getActiveCount();
     }
 
 }
