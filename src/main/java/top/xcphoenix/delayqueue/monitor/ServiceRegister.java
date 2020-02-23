@@ -2,7 +2,6 @@ package top.xcphoenix.delayqueue.monitor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Component;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
 import top.xcphoenix.delayqueue.exception.RegisterException;
 import top.xcphoenix.delayqueue.monitor.global.GroupMonitor;
@@ -21,7 +20,6 @@ import java.util.stream.Collectors;
  * @version     1.0
  */
 @Slf4j
-@Component
 public class ServiceRegister {
 
     private GroupMonitor groupMonitor;

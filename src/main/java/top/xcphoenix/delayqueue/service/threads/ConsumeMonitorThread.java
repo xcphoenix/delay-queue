@@ -41,7 +41,7 @@ public class ConsumeMonitorThread extends Thread {
     /**
      * redis 操作(BLPOP)
      */
-    private StringRedisTemplate redisTemplate = BeanUtil.getBean(StringRedisTemplate.class);
+    private StringRedisTemplate redisTemplate = BeanUtil.getBean("delayqueue-template", StringRedisTemplate.class);
     /**
      * redis 操作
      */

@@ -1,9 +1,7 @@
 package top.xcphoenix.delayqueue.monitor.init.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Component;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
 import top.xcphoenix.delayqueue.monitor.global.GroupMonitor;
 import top.xcphoenix.delayqueue.monitor.global.TopicMonitor;
@@ -19,8 +17,6 @@ import java.util.Set;
  * @date        2020/2/6 下午10:31
  * @version     1.0
  */
-@Component("scan-topic")
-@Order(2)
 @Slf4j
 public class TopicInitScanImpl implements InitScanInterface {
 

@@ -2,7 +2,6 @@ package top.xcphoenix.delayqueue.monitor.global;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 import top.xcphoenix.delayqueue.service.threads.ConsumeMonitorThread;
 
 import java.util.Map;
@@ -16,7 +15,6 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @version     1.0
  */
 @Slf4j
-@Component
 public class TopicMonitor {
 
     private GroupMonitor groupMonitor;

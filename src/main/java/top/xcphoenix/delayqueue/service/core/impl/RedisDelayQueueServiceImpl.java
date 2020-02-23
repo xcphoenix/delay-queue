@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.stereotype.Service;
 import top.xcphoenix.delayqueue.constant.LuaEnum;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
 import top.xcphoenix.delayqueue.monitor.global.GroupMonitor;
@@ -17,7 +16,10 @@ import top.xcphoenix.delayqueue.service.core.DelayQueueService;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -27,7 +29,6 @@ import java.util.concurrent.ConcurrentMap;
  * @date 2019/12/30 下午9:55
  */
 @Slf4j
-@Service
 public class RedisDelayQueueServiceImpl implements DelayQueueService {
 
     private GroupMonitor groupMonitor;

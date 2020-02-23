@@ -9,10 +9,10 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>top.xcphoenix</groupId>
-	<artifactId>delayqueue</artifactId>
+	<artifactId>delayqueue-spring-boot-starter-autoconfigure</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>delayqueue</name>
-	<description>Demo project for Spring Boot</description>
+	<description>DelayQueue Based on Redis</description>
 	
 	<properties>
 		<java.version>12</java.version>
@@ -29,6 +29,11 @@
 			<groupId>redis.clients</groupId>
 			<artifactId>jedis</artifactId>
 			<version>3.2.0</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-autoconfigure</artifactId>
 		</dependency>
 		
 		<dependency>
@@ -111,8 +116,13 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

@@ -1,7 +1,6 @@
-package top.xcphoenix.delayqueue.config;
+package top.xcphoenix.delayqueue.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -10,8 +9,7 @@ import java.util.List;
  * @date        2019/12/29 下午5:37
  * @version     1.0
  */
-@Component
-@ConfigurationProperties(prefix = "spring.redis.cluster")
+@ConfigurationProperties(prefix = "delayqueue.cluster")
 public class ClusterConfigurationProperties {
 
     private List<String> nodes;

@@ -3,7 +3,6 @@ package top.xcphoenix.delayqueue.service.core.impl;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
 import top.xcphoenix.delayqueue.exception.CallbackException;
 import top.xcphoenix.delayqueue.pojo.Args;
 import top.xcphoenix.delayqueue.pojo.Callback;
@@ -20,7 +19,6 @@ import java.lang.reflect.Modifier;
  * @date 2020/2/9 下午8:50
  */
 @Slf4j
-@Service
 public class CallbackServiceImpl implements CallbackService {
 
     @Override

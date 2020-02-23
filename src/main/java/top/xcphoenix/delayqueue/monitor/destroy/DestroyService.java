@@ -3,7 +3,6 @@ package top.xcphoenix.delayqueue.monitor.destroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -17,7 +16,6 @@ import java.util.concurrent.TimeUnit;
  * @version     1.0
  */
 @Slf4j
-@Service
 public class DestroyService implements DisposableBean {
 
     private ThreadPoolExecutor pushExecutor;
