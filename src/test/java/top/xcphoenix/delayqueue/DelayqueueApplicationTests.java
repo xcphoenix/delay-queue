@@ -3,14 +3,11 @@ package top.xcphoenix.delayqueue;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import top.xcphoenix.delayqueue.service.core.DelayQueueService;
 import top.xcphoenix.delayqueue.service.core.impl.RedisDelayQueueServiceImpl;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.util.concurrent.FutureTask;
 
-@SpringBootTest
+// @SpringBootTest
 class DelayqueueApplicationTests {
 
     @Autowired
@@ -22,11 +19,24 @@ class DelayqueueApplicationTests {
 
     @Test
     @Disabled
-    void tmp() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Class<? extends DelayQueueService> delayQueueService = redisDelayQueueService.getClass();
-        Method method = delayQueueService.getDeclaredMethod("init");
-        method.setAccessible(true);
-        method.invoke(redisDelayQueueService);
+    void tmp() {
+        FutureTask futureTask = new FutureTask<Void>(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                }
+            }
+        }, null);
+
+        futureTask.run();
+        long start = System.currentTimeMillis();
+
+        while (System.currentTimeMillis() - start <= 10000) {
+        }
+
+        System.out.println("stop...");
+        futureTask.cancel(true);
+
     }
 
 }

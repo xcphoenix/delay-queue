@@ -2,7 +2,6 @@ package top.xcphoenix.delayqueue.service.threads;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import redis.clients.jedis.Jedis;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
 import top.xcphoenix.delayqueue.exception.CallbackException;
 import top.xcphoenix.delayqueue.monitor.global.ExecutorMonitor;
@@ -31,10 +30,6 @@ public class ConsumeMonitorThread extends Thread {
      * 关注 group 下的 topic
      */
     private String attendTopic;
-    /**
-     * for stop blpop
-     */
-    private Jedis jedis;
     /**
      * 控制线程结束
      */
