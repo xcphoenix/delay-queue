@@ -1,0 +1,24 @@
+# Redis Config
+delayqueue:
+  cluster:
+    nodes:
+      - 169.69.2.2:7001
+      - 169.69.2.3:7002
+      - 169.69.2.4:7003
+      - 169.69.2.5:7004
+      - 169.69.2.6:7005
+      - 169.69.2.7:7006
+    max-redirects: 3
+  jedis:
+    pool:
+      max-total: 300
+      max-wait: 2000
+      max-idle: 50
+      min-idle: 10
+      num-tests-per-eviction-run: 1024
+      min-evictable-idle-time-millis: 1800000
+      soft-min-evictable-idle-time-millis: 10000
+      test-on-borrow: true
+      test-while-idle: true
+      time-between-eviction-runs-mills: 30000
+debug: true
