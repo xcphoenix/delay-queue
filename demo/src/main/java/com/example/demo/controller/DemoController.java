@@ -29,9 +29,6 @@ public class DemoController {
     private ServiceRegister serviceRegister;
     private DelayQueueService delayQueueService;
 
-    @Autowired
-    private RedisConnectionFactory redisConnectionFactory;
-
     public DemoController(ServiceRegister serviceRegister, DelayQueueService delayQueueService) {
         this.serviceRegister = serviceRegister;
         this.delayQueueService = delayQueueService;
