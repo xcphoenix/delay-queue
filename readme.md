@@ -1,7 +1,5 @@
 # DelayQueue - 基于Redis的延迟队列
 
-[TOC]
-
 ## 项目介绍
 
 项目基于 Redis 实现了简单的延迟队列，在创建了需要关注的 ***Group*** 以及 ***Topic*** 后，可以创建任务，指定任务执行的时间、执行任务的接口以及需要的参数。当到达任务的执行时间时，会从 Redis 中取出数据并执行任务。
@@ -10,7 +8,7 @@
 
 ```shell
 ./
-├── autoconfigure			// springboot-autoconfigure
+├── autoconfigure	    // springboot-autoconfigure
 ├── demo                    // demo演示
 ├── normal                  // 非springboot-starter代码
 │   ├── pom.xml
@@ -127,7 +125,7 @@
 
 在添加任务前，必须指定所在的 Group 以及 Topic，否则任务不会被监听线程扫描。
 
-Group、Topic 数据以Hash存储在 Redis 中的键：***MONITOR:SUMMARY***
+Group、Topic 数据以Hash存储在 Redis 中的键：*MONITOR:SUMMARY* 当中。
 
 注册 Group、Topic 后，会将数据添加到此键中，防止发生意外事故导致数据丢失。
 
@@ -182,7 +180,7 @@ Group、Topic 数据以Hash存储在 Redis 中的键：***MONITOR:SUMMARY***
 
 #### 消费线程
 
-服务会为每一个 Topic 创建线程，去监听所对应的待消费队列，使用 Redis 的 BLPOP 阻塞操作避免空轮训，当有任务可以被消费则根据任务回调线程池可用的线程数量取出合适的任务，交由任务回调线程会处理。
+服务会为每一个 Topic 创建线程，去监听所对应的待消费队列，使用 Redis 的 BLPOP 操作操作避免空轮训，当有任务可以被消费则根据任务回调线程池可用的线程数量取出合适的任务，交由任务回调线程会处理。
 
 #### 回调线程
 
