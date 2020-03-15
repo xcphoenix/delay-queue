@@ -29,7 +29,6 @@ public class GroupMonitor {
 
     /**
      * 组与线程的映射
-     * thread safe
      */
     private Map<String, PushMonitorThread> groupPushThread = new ConcurrentHashMap<>();
 
@@ -52,7 +51,7 @@ public class GroupMonitor {
      *
      * @return group list
      */
-    public Set<String> getCurrGroups() {
+    public Set<String> getMonitoredGroups() {
         return groupPushThread.keySet();
     }
 

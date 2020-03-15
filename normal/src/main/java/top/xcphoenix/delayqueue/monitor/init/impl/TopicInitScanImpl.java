@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
 import top.xcphoenix.delayqueue.monitor.global.GroupMonitor;
 import top.xcphoenix.delayqueue.monitor.global.TopicMonitor;
-import top.xcphoenix.delayqueue.monitor.init.InitScanInterface;
+import top.xcphoenix.delayqueue.monitor.init.InitScanner;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -15,14 +15,14 @@ import java.util.Set;
 /**
  * 扫描 TOPIC
  *
- * @author      xuanc
- * @date        2020/2/6 下午10:31
- * @version     1.0
+ * @author xuanc
+ * @version 1.0
+ * @date 2020/2/6 下午10:31
  */
 @Component("scan-topic")
 @Order(2)
 @Slf4j
-public class TopicInitScanImpl implements InitScanInterface {
+public class TopicInitScanImpl implements InitScanner {
 
     private GroupMonitor groupMonitor;
     private TopicMonitor topicMonitor;
@@ -38,14 +38,14 @@ public class TopicInitScanImpl implements InitScanInterface {
     public void run(String... args) {
         log.info("Topic init...");
 
-        String redisKey = RedisDataStruct.PROJECT_MONITOR_KEY;
-        Set<String> groups = groupMonitor.getCurrGroups();
+        String monitorKey = RedisDataStruct.PROJECT_MONITOR_KEY;
+        Set<String> groups = groupMonitor.getMonitoredGroups();
 
         for (String group : groups) {
             // get topics
-            String topics = (String) redisTemplate.opsForHash().get(redisKey, group);
+            String topics = (String) redisTemplate.opsForHash().get(monitorKey, group);
             String[] topicArr = topics == null ? new String[0]
-                    : topics.split(RedisDataStruct.MONITOR_TOPIC_DELIMITER);
+                            : topics.split(RedisDataStruct.MONITOR_TOPIC_DELIMITER);
 
             log.info("Init group: " + group + ", topics: " + Arrays.toString(topicArr));
 

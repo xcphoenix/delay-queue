@@ -53,7 +53,7 @@ public class DestroyService implements DisposableBean {
             try {
                 if (!executor.awaitTermination(timeout, timeUnit)) {
                     log.warn("terminal executor: " + executorName + " timeout(" + timeout + timeUnit.name() + "), force stop!");
-                    List<Runnable> canceledJobs =  executor.shutdownNow();
+                    List<Runnable> canceledJobs = executor.shutdownNow();
                     log.warn("force stop end, there are " + canceledJobs.size() + " threads be canceled");
                 }
             } catch (InterruptedException e) {

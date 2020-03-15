@@ -63,6 +63,7 @@ public class ConsumeMonitorThread extends Thread {
 
         while (!stop) {
             List<Task> taskList;
+            // 防止数据不一致
             synchronized (executorMonitor) {
                 int availableThreads = executorMonitor.getCallbackAvailableThreads();
                 // == 0 will get all data
@@ -108,7 +109,7 @@ public class ConsumeMonitorThread extends Thread {
 
     private void close() {
         this.stop = true;
-        // add "" string for blpop
+        // add "" string for end blpop
         // also filter for lua
         redisTemplate.opsForList().leftPush(RedisDataStruct.consumingKey(BaseTask.of(attendGroup, attendTopic)), "");
     }

@@ -54,6 +54,7 @@ public class ServiceRegister {
         }
         redisTemplate.opsForHash().put(summaryKey, group, "");
         groupMonitor.pushNewGroup(group);
+        // init
         topicMonitor.init(group);
 
         log.info("register success");
@@ -80,12 +81,15 @@ public class ServiceRegister {
             return false;
         }
 
+        // get old topics
         String topics = (String) redisTemplate.opsForHash().get(summaryKey, group);
         if (topics == null || "".equals(topics.trim())) {
+            // replace
             topics = topic;
         } else {
             topics = topics + RedisDataStruct.MONITOR_TOPIC_DELIMITER + topic;
         }
+
         redisTemplate.opsForHash().put(summaryKey, group, topics);
         topicMonitor.pushNewTopic(group, topic);
 
@@ -124,8 +128,9 @@ public class ServiceRegister {
             log.warn("group: " + group + " is not registered");
             return;
         }
+
         log.info("cancel topics...");
-        topicMonitor.getCurrTopics(group).forEach(s -> cancelTopic(group, s));
+        topicMonitor.getMonitoredTopics(group).forEach(s -> cancelTopic(group, s));
         groupMonitor.remOldGroup(group);
         redisTemplate.opsForHash().delete(summaryKey, group);
         log.info("cancel group: " + group + " done");
@@ -145,17 +150,21 @@ public class ServiceRegister {
         log.info("cancel topic: " + topic + " in group: " + group);
 
         topicMonitor.remOldTopic(group, topic);
+        // get old topics
         String topics = (String) redisTemplate.opsForHash().get(summaryKey, group);
         assert topics != null;
         String[] topicArr = topics.split(RedisDataStruct.MONITOR_TOPIC_DELIMITER);
+        // replace null
         for (int i = 0; i < topicArr.length; i++) {
             if (topicArr[i].equals(topic)) {
                 topicArr[i] = null;
                 break;
             }
         }
+        // filter null
         topics = Arrays.stream(topicArr).filter(Objects::nonNull)
                 .collect(Collectors.joining(RedisDataStruct.MONITOR_TOPIC_DELIMITER));
+        // update
         redisTemplate.opsForHash().put(summaryKey, group, topics);
 
         log.info("cancel topic: " + topic + " done");

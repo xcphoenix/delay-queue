@@ -1,6 +1,8 @@
 package top.xcphoenix.delayqueue.utils;
 
 /**
+ * 雪花算法
+ * 0 - 00000000 00000000 00000000 00000000 00000000 0 - 00000 - 00000 - 0000 0000 0000
  * @author xuanc
  * @version 1.0
  * @date 2019/12/24 下午2:50
@@ -11,7 +13,6 @@ public class SnowFlakeIDUtil {
      * 开始时间戳
      */
     private final static long START_STAMP;
-
     static {
         START_STAMP = System.currentTimeMillis();
     }
@@ -54,7 +55,7 @@ public class SnowFlakeIDUtil {
     private static long lastStamp = -1L;
 
     public static synchronized long nextId() {
-        return nextId(0, SnowFlakeIDUtil.machineId);
+        return nextId(dataCenterId, machineId);
     }
 
     public static synchronized long nextId(long dataCenterId, long machineId) {
@@ -64,6 +65,7 @@ public class SnowFlakeIDUtil {
 
         long currStamp = getNewStamp();
 
+        // 时钟错误
         if (currStamp < lastStamp) {
             throw new RuntimeException("Clock moved backwards. Refusing to generate id");
         }

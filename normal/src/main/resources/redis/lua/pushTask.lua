@@ -49,11 +49,12 @@ if status ~= nil and status == 'ok' then
                 local taskId = item[2];
                 local consumingKey = consumingKeyPrefix .. ':' .. topic;
 
+                -- put consume list
                 redis.call('RPUSH', consumingKey, taskId);
                 log('~ add value ' .. taskId .. ' in key ' .. consumingKey);
             end
 
-            -- 从等待队列中删除
+            -- remove from waiting zset
             redis.call('ZREM', waitingKey, unpack(list))
             log('delete list on waiting key');
         end
