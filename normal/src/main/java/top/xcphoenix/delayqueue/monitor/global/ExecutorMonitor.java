@@ -15,8 +15,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Component
 public class ExecutorMonitor {
 
-    private volatile int callTmpOccupy = 0;
-
     private ThreadPoolExecutor pushExecutor;
     private ThreadPoolExecutor consumeExecutor;
     private ThreadPoolExecutor callbackExecutor;

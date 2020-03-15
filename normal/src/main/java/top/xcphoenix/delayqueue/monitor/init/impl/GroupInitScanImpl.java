@@ -6,7 +6,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import top.xcphoenix.delayqueue.constant.RedisDataStruct;
 import top.xcphoenix.delayqueue.monitor.global.GroupMonitor;
-import top.xcphoenix.delayqueue.monitor.init.InitScanInterface;
+import top.xcphoenix.delayqueue.monitor.init.InitScanner;
 
 import java.util.Set;
 
@@ -20,7 +20,7 @@ import java.util.Set;
 @Component("scan-group")
 @Order(1)
 @Slf4j
-public class GroupInitScanImpl implements InitScanInterface {
+public class GroupInitScanImpl implements InitScanner {
 
     private GroupMonitor groupMonitor;
     private StringRedisTemplate redisTemplate;
@@ -34,8 +34,8 @@ public class GroupInitScanImpl implements InitScanInterface {
     public void run(String... args) {
         log.info("Group init...");
 
-        String redisKey = RedisDataStruct.PROJECT_MONITOR_KEY;
-        Set<Object> groups = redisTemplate.opsForHash().keys(redisKey);
+        String monitorKey = RedisDataStruct.PROJECT_MONITOR_KEY;
+        Set<Object> groups = redisTemplate.opsForHash().keys(monitorKey);
 
         log.info("Init groups: " + groups.toString());
 

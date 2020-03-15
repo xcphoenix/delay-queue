@@ -21,7 +21,7 @@ public class ThreadPoolConfig {
      */
     @Bean(name = "pushThreadPool")
     public ThreadPoolExecutor pushThreadPool() {
-        int corePoolSize = 5;
+        int corePoolSize = 10;
         int maxPoolSize = 10;
         long keepAliveTime = 0L;
         ThreadFactory pushThreadFactory = new ThreadFactoryBuilder()
@@ -43,8 +43,8 @@ public class ThreadPoolConfig {
      */
     @Bean(name = "consumeThreadPool")
     public ThreadPoolExecutor consumeThreadPool() {
-        int corePoolSize = 10;
-        int maxPoolSize = 30;
+        int corePoolSize = 20;
+        int maxPoolSize = 20;
         long keepAliveTime = 0L;
         ThreadFactory pushThreadFactory = new ThreadFactoryBuilder()
                 .setNameFormat("ConsumePool-%d")

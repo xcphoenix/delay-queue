@@ -29,13 +29,19 @@ public class RedisDataStruct {
     private RedisDataStruct() {}
 
     /**
-     * for key
+     * 获取任务所在详情列表中的 key
+     * @param task 任务信息
+     * @return key
      */
-
     public static String taskKey(BaseTask task) {
         return join(wrap(task.getGroup()), DETAIL);
     }
 
+    /**
+     * 获取任务所在的等待的有序集合的 key
+     * @param task 任务信息
+     * @return key
+     */
     public static String waitingKey(BaseTask task) {
         return join(wrap(task.getGroup()), WAITING);
     }
@@ -54,10 +60,20 @@ public class RedisDataStruct {
         return join(wrap(task.getGroup()), CONSUMING, task.getTopic());
     }
 
+    /**
+     * 获取任务所在的待消费队列中的 key 前缀
+     * @param task 任务信息
+     * @return key 前缀（无topic信息）
+     */
     public static String consumingKeyPrefix(BaseTask task) {
         return join(wrap(task.getGroup()), CONSUMING);
     }
 
+    /**
+     * 获取任务所在的键
+     * @param task 任务信息
+     * @return 任务在 hash、zset、list 中的键
+     */
     public static List<String> getRedisKeys(BaseTask task) {
         return Arrays.asList(taskKey(task), waitingKey(task), consumingKeyPrefix(task));
     }
@@ -66,7 +82,7 @@ public class RedisDataStruct {
      * for field or value
      */
 
-    public static String taskField(BaseTask task) {
+    public static String taskIdField(BaseTask task) {
         if (task.getId() == null) {
             throw new IllegalArgumentException("id can't be null");
         }
@@ -78,13 +94,6 @@ public class RedisDataStruct {
             throw new IllegalArgumentException("id or topic can't be null");
         }
         return join(task.getTopic(), task.getId());
-    }
-
-    public static String consumingValue(BaseTask task) {
-        if (task.getId() == null) {
-            throw new IllegalArgumentException("id can't be null");
-        }
-        return String.valueOf(task.getId());
     }
 
     /**

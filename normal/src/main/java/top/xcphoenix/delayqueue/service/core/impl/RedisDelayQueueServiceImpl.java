@@ -37,7 +37,7 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
     /**
      * lua 脚本
      */
-    private static ConcurrentMap<String, RedisScript<List<String>>> REDIS_SCRIPT = new ConcurrentHashMap<>();
+    private static Map<String, RedisScript<List<String>>> REDIS_SCRIPT = new ConcurrentHashMap<>();
 
     public RedisDelayQueueServiceImpl(GroupMonitor groupMonitor, StringRedisTemplate redisTemplate) {
         this.groupMonitor = groupMonitor;
@@ -48,7 +48,7 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
     public void addTask(Task task) {
         List<String> keys = getRedisKeys(task, true, true);
 
-        String taskField = RedisDataStruct.taskField(task);
+        String taskField = RedisDataStruct.taskIdField(task);
         String taskSerializer = JSON.toJSONString(task);
         String waitingValue = RedisDataStruct.waitingValue(task);
         long execTime = task.getDelayExecTime().getTime();
@@ -70,7 +70,7 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
     public Task removeTask(BaseTask task) {
         List<String> keys = getRedisKeys(task, true, true);
 
-        String taskField = RedisDataStruct.taskField(task);
+        String taskField = RedisDataStruct.taskIdField(task);
         String waitingValue = RedisDataStruct.waitingValue(task);
         Object[] args = new String[]{
                 taskField, waitingValue
@@ -113,7 +113,6 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
         }
 
         BaseTask baseTask = BaseTask.of(group, topic);
-
         String consumingKey = RedisDataStruct.consumingKey(baseTask);
         String taskKey = RedisDataStruct.taskKey(baseTask);
 
@@ -135,6 +134,9 @@ public class RedisDelayQueueServiceImpl implements DelayQueueService {
         return taskList;
     }
 
+    /**
+     * init lua scripts
+     */
     @PostConstruct
     @SuppressWarnings({"unchecked"})
     public void init() throws IOException {

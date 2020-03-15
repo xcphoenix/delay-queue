@@ -28,7 +28,6 @@ public class TopicMonitor {
 
     /**
      * 组与topic的映射
-     * set 也要注意线程安全诶..
      */
     private Map<String, Topics> groupTopic = new ConcurrentHashMap<>();
 
@@ -67,7 +66,7 @@ public class TopicMonitor {
      * @param group 组
      * @return 组内的 topic 数据
      */
-    public Set<String> getCurrTopics(String group) {
+    public Set<String> getMonitoredTopics(String group) {
         return groupTopic.get(group).getTopics();
     }
 

@@ -1,15 +1,12 @@
 package top.xcphoenix.delayqueue.config;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.support.spring.GenericFastJsonRedisSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import redis.clients.jedis.JedisPoolConfig;
 
 /**
@@ -40,19 +37,5 @@ public class RedisClusterConfig {
                 jedisPoolConfig
         );
     }
-
-    // @Bean
-    // @SuppressWarnings({"rawtypes", "unchecked"})
-    // public RedisTemplate redisTemplate(RedisConnectionFactory redisConnectionFactory) {
-    //     RedisTemplate redisTemplate = new RedisTemplate();
-    //     System.out.println(redisTemplate);
-    //     redisTemplate.setConnectionFactory(redisConnectionFactory);
-    //
-    //     GenericFastJsonRedisSerializer fastJsonRedisSerializer = new GenericFastJsonRedisSerializer();
-    //     redisTemplate.setKeySerializer(new StringRedisSerializer());
-    //     redisTemplate.setValueSerializer(fastJsonRedisSerializer);
-    //     redisTemplate.afterPropertiesSet();
-    //     return redisTemplate;
-    // }
 
 }
